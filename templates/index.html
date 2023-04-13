@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Memorize Memorise!</title>
+
+    <!-- Font Icon -->
+    <link rel="stylesheet" href="/static/fonts/material-icon/css/material-design-iconic-font.min.css">    
+
+    <link rel="stylesheet" href="/static/css/style.album.css">
+    
+    <link rel="stylesheet" href="/static/css/bootstrap.gallery.min.css">
+    <link rel="stylesheet" href="/static/css/ionicons.min.css"> 
+    <link rel="stylesheet" href="/static/css/style.gallery.css">
+    
+    <link rel="stylesheet" href="/static/css/style.css"> 
+</head>
+
+<body>
+
+    <div id="preloder">
+            <div class="loader"></div>
+    </div>
+    
+    <div id="app">
+        <!-- Sign in  Form -->
+        <section v-if="panel === 'sign-in'" class="sign-in main">
+            <div class="container">
+                <div class="signin-content">
+                    <div class="signin-image">
+                        <figure><img src="/static/images/signin.png" alt="signin image"></figure>
+                        <a href="#" v-on:click="change_panel('signup')" class="signup-image-link">Create an account </a>                        
+                    </div>
+
+                    <div class="signin-form">
+                        <h2 class="form-title">Login</h2>
+                        <form href="#" class="register-form" id="login-form">
+                            <div class="form-group">
+                                <label for="email"><i class="zmdi zmdi-email"></i></label>
+                                <input v-model="user_email" type="email" name="email" id="email" placeholder="Email"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="your_pass"><i class="zmdi zmdi-lock"></i></label>
+                                <input v-model="user_password" type="password" name="your_pass" id="your_pass" placeholder="Password"/>
+                            </div>
+                            
+                            <div class="form-group form-button">
+                                <input href="#" type="button" v-on:click="signin(this)" name="signin" id="signin" class="form-submit" value="Log in"/>
+                            </div>
+                            
+                            <div v-if="error_login === 'False'" class="alert alert-danger" role="alert">
+                                Email or password is incorrect.
+                            </div>
+                            <div v-if="error_login === 'empty'" class="alert alert-danger" role="alert">
+                                Fill all labels.
+                            </div>
+                            <div v-if="error_login === 'noactive'" class="alert alert-danger" role="alert">
+                                Activate link sent to your email, open the link to active your account.
+                            </div>
+                        </form>                        
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Sign up form -->
+        <section v-if="panel === 'signup'" class="signup main">
+            <div class="container logined">
+                <div class="signup-content">
+                    <div class="signup-form">
+                        <h2 class="form-title">Sign up</h2>
+                        <form href="#" class="register-form" id="register-form">
+                            <div class="form-group">
+                                <label for="name"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                                <input v-model="fullname" type="text" name="name" id="name" placeholder="Your Full Name"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="email"><i class="zmdi zmdi-email"></i></label>
+                                <input v-model="email" type="email" name="email" id="email" placeholder="Your Email"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="pass"><i class="zmdi zmdi-lock"></i></label>
+                                <input v-model="password" type="password" name="pass" id="pass" placeholder="Password"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="re-pass"><i class="zmdi zmdi-lock-outline"></i></label>
+                                <input v-model="confirm_password" type="password" name="re_pass" id="re_pass" placeholder="Repeat your password"/>
+                            </div>                            
+
+                            <div v-if="success_signup === 'True'" class="alert alert-primary" role="alert">
+                                Your account created, Please check your email to verify.
+                            </div>
+                            
+                            <div v-if="error_signup === 'empty'" class="alert alert-danger" role="alert">
+                                Please fill all labels.
+                            </div>
+                            <div v-if="error_signup === 'missmatch_pass'" class="alert alert-danger" role="alert">
+                                Pass and re-pass are not match.
+                            </div>
+                            <div v-if="error_signup === 'duplicate_email'" class="alert alert-danger" role="alert">
+                                This email is already registered.
+                            </div>
+                            
+                            <div class="form-group form-button">
+                                <input href="#" type="button" v-on:click="signup(this)"  name="signup" id="signup" class="form-submit" value="Register"/>
+                            </div>
+
+
+                        </form>
+                    </div>
+                    <div class="signup-image">
+                        <figure><img src="/static/images/signup.png" alt="sing up image"></figure>
+                        <a href="#" v-on:click="change_panel('sign-in')" class="signup-image-link">Already have an account? </a>                        
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- New Album panel -->
+        <section v-if="panel === 'new-album'" class="signup main">
+            <style>
+                body {background-image: url("/static/images/back.jpg")}
+            </style>
+            <div class="container" style="background-color:aliceblue">
+                <div class="signup-content">
+                    <div class="signup-form">
+                        
+                        <h2 class="form-title">New Album</h2>
+                        
+                        <form href="#" class="register-form" id="register-form">
+                            <div class="form-group">                                
+                                <label><i class="zmdi zmdi-account material-icons-name"></i></label>
+                                <input style="background-color:aliceblue" v-model="album_title" type="text"  placeholder="Title"/>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="zmdi zmdi-email"></i></label>
+                                <input style="background-color:aliceblue" v-model="album_info" type="email" placeholder="Info"/>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="zmdi zmdi-image"></i></label>
+                                <input style="background-color:aliceblue" v-model="photo_name" type="text" placeholder="Cover photo"/>
+                            </div>
+                                     
+                            <div class="form-group form-button">
+                                <input href="#" type="button" v-on:click="add_album(this)" name="signup" id="signup" class="form-submit" value="Add"/>
+                                <input href="#" type="button" v-on:click="change_panel('gallery')" name="signup" id="signup" class="form-submit cancel-button" value="Cancel"/>
+                            </div>
+                            <div v-if="error_newgallery === 'empty'" class="alert alert-danger" role="alert">
+                                Please fill all labels.
+                            </div>
+                            <div v-if="error_newgallery === 'duplicate title'" class="alert alert-danger" role="alert">
+                                This title is duplicate, Please choose another title.
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Add Photo panel -->
+        <section v-if="panel === 'add_photo'" class="signup main">
+            <style>
+                body {background-image: url("/static/images/back.jpg")}
+            </style>
+            <div class="container" style="background-color:aliceblue">
+                <div class="signup-content">
+                    <div class="signup-form">
+                        
+                        <h2 class="form-title">New Photo</h2>
+                        
+                        <form href="#" class="register-form" id="register-form">                            
+                            <div class="form-group">
+                                <label><i class="zmdi zmdi-image"></i></label>
+                                <input style="background-color:aliceblue" v-model="add_photo_name" type="text" placeholder="Photo name"/>
+                            </div>                                     
+                            <div class="form-group form-button">
+                                <input href="#" type="button" v-on:click="add_photo(this)" name="signup" id="signup" class="form-submit" value="Add"/>
+                                <input href="#" type="button" v-on:click="change_panel('album_panel')" name="signup" id="signup" class="form-submit cancel-button" value="Cancel"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+        <!-- Album panel -->
+        
+        <section v-if="panel === 'album_panel'" >
+            <style>
+                body {background-image: url("/static/images/back.jpg")}
+            </style>
+            
+            <header class="header logined">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-4 col-md-3 order-2 order-sm-1">
+                            <div class="header__social">
+                                <a href="https://facebook.com/m_eghlima8"><i class="zmdi zmdi-facebook-box"></i></a>
+                                <a href="https://twitter.com/m_eghlima8"><i class="zmdi zmdi-twitter-box"></i></a>
+                                <a href="https://instagram.com/m_eghlima8"><i class="zmdi zmdi-instagram"></i></a>
+                            </div>
+                        </div>                        
+                    </div>
+                    
+                    <nav class="main__menu">
+                        <ul class="nav__menu">                            
+                            <li><a href="#" v-on:click="change_panel('gallery')" >Gallery</a></li>                            
+                            <li><a href="#" v-on:click="change_panel('add_photo')" >Add Photo</a></li>                            
+                        </ul>
+                    </nav>
+                </div>
+            </header>
+            <br></br>
+            <div style="padding-left:25px; padding-right:25px;">
+                <div class="row d-flex flex-wrap align-items-center" data-toggle="modal" data-target="#lightbox">
+                    
+                    <div v-for="photo in album_photos" class="col-12 col-md-6 col-lg-3">                    
+                        <img class="shadow p-3 mb-5 bg-white rounded" src="{% raw %} {{photo}} {% endraw %}" data-target="#indicators" data-slide-to="0" alt="" /> 
+                    </div>                    
+
+                </div>                            
+            </div>            
+            <a href="#" v-on:click="change_panel('gallery')" class="btn btn-primary back-to-top"><i class="zmdi zmdi-home zmdi-hc-3x"></i></a>
+            </section>
+            <!-- Album panel nnd-->
+
+            
+        </section>
+
+
+
+
+        <!-- Gallery panel -->
+        <section v-if="panel === 'gallery'">
+            <style>
+                body {background-image: url("/static/images/back.jpg")}
+            </style>
+
+            
+            <header class="header logined">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-4 col-md-3 order-2 order-sm-1">
+                            <div class="header__social">
+                                <a href="https://facebook.com/m_eghlima8"><i class="zmdi zmdi-facebook-box"></i></a>
+                                <a href="https://twitter.com/m_eghlima8"><i class="zmdi zmdi-twitter-box"></i></a>                                
+                                <a href="https://instagram.com/m_eghlima8"><i class="zmdi zmdi-instagram"></i></a>
+                            </div>
+                        </div>                        
+                    </div>
+                    
+                    <nav class="main__menu">
+                        <ul class="nav__menu">                            
+                            <li><a href="#" class="menu--active" >Gallery</a></li>                            
+                            <li><a href="#" v-on:click="signout(this)" >Logout</a></li>
+                            
+                        </ul>
+                    </nav>
+                </div>
+            </header>
+            
+            <!-- Gallery Start -->
+            <div class="container-xxl py-5">
+                <div class="row g-4">                    
+                    
+                    <div v-for="album in albums" class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
+                        <div class="shadow p-3 mb-5 bg-white rounded service-item rounded overflow-hidden">
+                            <img class="img-fluid img-fix-size rounded" src="{% raw %}{{album[2]}}{% endraw %}" alt="">
+                            <div class="position-relative p-4 pt-0">
+                                <div v-on:click="albumphotos(album)" class="service-icon" style="background-color:#e0ebe2">
+                                    <i class="zmdi zmdi-collection-image zmdi-hc-4x "></i>
+                                </div>
+                                <h4 class="mb-3">{% raw %} {{album[0]}} {% endraw %}</h4>
+                                <p>{% raw %} {{album[1]}} {% endraw %}</p>                                
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Gallery end -->
+
+
+            <!-- New Gallery -->
+            <a href="#" v-on:click="change_panel('new-album')" class="btn btn-primary back-to-top"><i class="zmdi zmdi-collection-plus zmdi-hc-3x"></i></a>
+        </section>
+
+
+
+
+    </div>
+    
+
+    <!-- JS -->
+    <script type="text/javascript" src="/static/scripts/jquery.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+    <script type="text/javascript" src="/static/scripts/main.album.js"></script>
+    <script type="text/javascript" src="/static/scripts/vue.min.js"></script>
+    <script type="text/javascript" src="/static/scripts/axios.min.js"></script>
+    <script type="text/javascript" src="/static/scripts/app.js"></script>
+
+    
+</body>
+</html>
