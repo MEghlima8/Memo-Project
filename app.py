@@ -10,7 +10,6 @@ import pdb
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = secrets.token_hex()
-info = {}
 
 
 def user_required(func):
