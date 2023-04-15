@@ -5,6 +5,7 @@ from flask import Flask, request, redirect, render_template, session,abort
 import sqlite3
 from send_email import send_confirm_email
 import pdb
+import user_management as user_mng
 
 
 app = Flask(__name__)
@@ -23,26 +24,7 @@ def user_required(func):
     return wrapper
 
 
-def is_exist_email(email):
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    cur.execute("select email from users_info where email=?", (email,))
-    x = cur.fetchone()
-    conn.commit()
-    if x == None:
-        return False
-    else:
-        return True
-    
 
-
-def get_user_id(email):
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    user_id = cur.execute(
-        "select id from users_info where email = ?", (email,)).fetchone()[0]
-    conn.commit()
-    return (user_id)
 
 @user_required
 def duplicate_title(title):
@@ -76,7 +58,7 @@ def _add_album():
     photo_src ='/static/images/' + photo
     try:
         user_email = session['email']        
-        user_id = get_user_id(user_email)
+        user_id = user_mng.get_user_id(user_email)
     except:
         redirect('/signin')
     
@@ -99,7 +81,7 @@ def _albums():
     titles=[' ']
     albumsinfo=[]
     email = session['email']
-    user_id = get_user_id(email)
+    user_id = user_mng.get_user_id(email)
     conn = sqlite3.connect('data.sqlite')
     cur = conn.cursor()
     albums_info = cur.execute(
@@ -119,7 +101,7 @@ def _albums():
 def _add_photo_to_album():
     photos=[]
     email = session['email']
-    user_id = get_user_id(email)
+    user_id = user_mng.get_user_id(email)
     album_title = request.data.decode('utf-8')
     album_title = json.loads(album_title)
     title = album_title["album_title"]
@@ -150,7 +132,7 @@ def _add_photo_to_album():
 def _albumphotos():
     photos=[]
     email = session['email']
-    user_id = get_user_id(email)
+    user_id = user_mng.get_user_id(email)
     album_title = request.data.decode('utf-8')
     album_title = json.loads(album_title)
     title = album_title["album_title"]    
@@ -170,30 +152,10 @@ def _signout():
     session['email']= False
     return 'True'
 
-def confirm_email(link):
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()    
-    cur.execute("UPDATE users_info SET active=?  where link=?",
-                (1,link))
-    x = cur.fetchone()
-    conn.commit()
-    return 'True'
-
 
 @app.route('/confirm', methods=['GET'])
-def check_confirm():
-    all_links = []
-    link = request.args.get('link','')    
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    users_links = cur.execute("select link from users_info")
-    conn.commit()
-    for row in users_links:
-        all_links.append(row[0])    
-    for i in all_links:
-        if i == link:
-            confirm_email(link)
-            return render_template('confirm_email.html')
+def _check_confirm():
+    return user_mng.check_confirm_email()
 	
 
 @app.route('/signup', methods=['GET','POST'])
@@ -204,39 +166,13 @@ def _signup():
     email = user_info["email"]
     password = user_info["password"]
     repassword = user_info["confirm_password"]
-    
-    if fullname == '' or email == '' or password == '' or repassword == '':
-        return 'empty'
-    if is_exist_email(email) == True :        
-        return 'duplicate_email'
-    if password != repassword:        
-        return 'missmatch_pass'
-    link = send_confirm_email(email,fullname)
-    
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    cur.execute('insert into users_info (fullname,email,password,active,link) values(? , ? , ? , 0 , ?)',
-                (fullname, email, password,link))
-    conn.commit()
-    return 'True'
-
-
-
-def check_login(email, password):
-    all_users = []
-    users = []
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    tuple_of_users = cur.execute("select email,password,active from users_info")
-    conn.commit()
-    for row in tuple_of_users:
-        all_users.append(row)
-    for i in all_users:
-        if i[0] == email and i[1] == password:
-            if i[2]==1:                
-                return True
-            return 'noactive'
-    return False
+    info={
+        'fullname':fullname,
+        'email':email,
+        'password':password,
+        'repassword':repassword
+    }
+    return user_mng.signup(info)
 
 
 
@@ -248,15 +184,11 @@ def _signin():
         user_info = json.loads(user_info)
         email = user_info["email"]
         password = user_info["password"]
-        check_user = check_login(email, password)
-        if check_user == True:
-            session['logged_in'] = True
-            session['email'] = email
-            return 'user'
-        elif check_user == 'noactive':
-            return 'noactive'
-        return 'False'
-    
+        info={        
+            'email':email,
+            'password':password,        
+        }
+        return(user_mng.signin(info))  
     except:
         return render_template('index.html')
         
