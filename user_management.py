@@ -1,19 +1,25 @@
-from flask import Flask, request, redirect, render_template, session
+from flask import session , abort
 from send_email import send_confirm_email
-import sqlite3
-import json
-import database
+import db_management as db
 import email_management as email_mng
+from functools import wraps
+
+def user_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session.get('logged_in') is True:
+            return func(*args, **kwargs)
+        else:
+            abort(403)
+    return wrapper
+
+
 
 
 def check_login(email, password):
     all_users = []
-    users = []
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    tuple_of_users = cur.execute("select email,password,active from users_info")
-    conn.commit()
-    for row in tuple_of_users:
+    users_info = db.get_users()
+    for row in users_info:
         all_users.append(row)
     for i in all_users:
         if i[0] == email and i[1] == password:
@@ -21,7 +27,6 @@ def check_login(email, password):
                 return True
             return 'noactive'
     return False
-
 
 
 
@@ -46,19 +51,8 @@ def signup(info):
     if info['password'] != info['repassword']:
         return 'missmatch_pass'
     link = send_confirm_email(info['email'],info['fullname'])
-    
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    cur.execute('insert into users_info (fullname,email,password,active,link) values(? , ? , ? , 0 , ?)',
-                (info['fullname'], info['email'], info['password'],link))
-    conn.commit()
+    info['link'] = link
+    db.do_signup(info)
     return 'True'
 
-
-def get_user_id(email):
-    conn = sqlite3.connect('data.sqlite')
-    cur = conn.cursor()
-    user_id = cur.execute(
-        "select id from users_info where email = ?", (email,)).fetchone()[0]
-    conn.commit()
-    return (user_id)
+    
