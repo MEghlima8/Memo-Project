@@ -27,12 +27,13 @@ def duplicate_title(title):
 @app.route('/add-album', methods=['GET','POST'])
 @user_mng.user_required
 def _add_album():
-    album_info = request.data.decode('utf-8')
-    album_info = json.loads(album_info)
-    title = album_info["title"]
-    caption = album_info["info"]
-    photo = album_info["photo"]
-    photo_src ='/static/images/' + photo
+    data_request = ["title" , "info" , "photo"]
+    album_info = user_mng.get_user_info(data_request)
+    title = album_info[0]
+    caption = album_info[1]
+    photo = album_info[2]
+    photo_src ='/static/images/' + album_info[2]
+    
     try:
         user_email = session['email']        
         user_id = db.get_user_id(user_email)
@@ -41,8 +42,10 @@ def _add_album():
     
     if title == '' or caption == '' or photo == '':
         return 'empty'
+    
     if duplicate_title(title):
         return 'duplicate title'
+    
     db.add_album(user_id, photo_src, title,caption)
     return 'True'
 
@@ -69,12 +72,11 @@ def _add_photo_to_album():
     photos=[]
     email = session['email']
     user_id = db.get_user_id(email)
-    album_title = request.data.decode('utf-8')
-    album_title = json.loads(album_title)
-    title = album_title["album_title"]
-    photo_name = album_title["photo_name"]
-    src = '/static/images/' + photo_name
-    album_photos = db.add_photo_to_album(user_id,title,src)
+    data_request = ["album_title" , "photo_name"]
+    user_info = user_mng.get_user_info(data_request)
+    src = '/static/images/' + user_info[1]
+    user_info = {"album_title":user_info[0] , "photo_name":user_info[1] ,"src":src}
+    album_photos = db.add_photo_to_album(user_id,user_info["album_title"],src)
     for i in album_photos:
         photos.append(i[0])
     return photos[1:]
@@ -86,10 +88,9 @@ def _albumphotos():
     photos=[]
     email = session['email']
     user_id = db.get_user_id(email)
-    album_title = request.data.decode('utf-8')
-    album_title = json.loads(album_title)
-    title = album_title["album_title"]    
-    album_photos = db.get_album_photos(user_id,title)
+    data_request = ["album_title"]
+    title = user_mng.get_user_info(data_request)
+    album_photos = db.get_album_photos(user_id,title[0])
     for i in album_photos:
         photos.append(i[0])
     return photos[1:]
@@ -109,36 +110,23 @@ def _check_confirm():
 
 @app.route('/signup', methods=['GET','POST'])
 def _signup():
-    user_info = request.data.decode('utf-8')
-    user_info = json.loads(user_info)
-    fullname = user_info["fullname"]
-    email = user_info["email"]
-    password = user_info["password"]
-    repassword = user_info["confirm_password"]
-    info={
-        'fullname':fullname,
-        'email':email,
-        'password':password,
-        'repassword':repassword
-    }
-    return user_mng.signup(info)
+    data_request = ["fullname" , "email" , "password" , "confirm_password"]
+    user_info = user_mng.get_user_info(data_request)
+    user_info = { "fullname":user_info[0] , "email":user_info[1] , "password":user_info[2] , "confirm_password":user_info[3]}
+    return user_mng.signup(user_info)
 
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
 @app.route('/' ,methods=['GET' , 'POST'] )
 def _signin():
     try :
-        user_info = request.data.decode('utf-8')
-        user_info = json.loads(user_info)
-        email = user_info["email"]
-        password = user_info["password"]
-        info={        
-            'email':email,
-            'password':password,        
-        }
-        return(user_mng.signin(info))  
+        info=["email","password"]
+        user_info = user_mng.get_user_info(info)
+        user_info = {"email":user_info[0] , "password":user_info[1]}
+        return(user_mng.signin(user_info))
     except:
         return render_template('index.html')
+        
         
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5000" , debug=True)

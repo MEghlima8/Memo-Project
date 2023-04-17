@@ -1,8 +1,9 @@
-from flask import session , abort
+from flask import session , abort , request
 from send_email import send_confirm_email
 import db_management as db
 import email_management as email_mng
 from functools import wraps
+import json
 
 def user_required(func):
     @wraps(func)
@@ -48,7 +49,7 @@ def signup(info):
             return 'empty'
     if email_mng.is_exist_email(info['email']) == True :        
         return 'duplicate_email'
-    if info['password'] != info['repassword']:
+    if info['password'] != info['confirm_password']:
         return 'missmatch_pass'
     link = send_confirm_email(info['email'],info['fullname'])
     info['link'] = link
@@ -56,3 +57,11 @@ def signup(info):
     return 'True'
 
     
+    
+def get_user_info(data_request):
+    info = []
+    user_info = request.data.decode('utf-8')
+    user_info = json.loads(user_info)
+    for req in data_request:
+        info.append(user_info[req])
+    return (info)
