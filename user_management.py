@@ -5,6 +5,7 @@ import email_management as email_mng
 from functools import wraps
 import json
 
+# This will check user is logined or not.if not getback error 403
 def user_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -15,14 +16,15 @@ def user_required(func):
     return wrapper
 
 
-
-
+# True if user password is True. noactive if user did signup but did not active
 def check_login(email, password):
     all_users = []
     users_info = db.get_users()
     for row in users_info:
         all_users.append(row)
     for i in all_users:
+        
+        # i[0] is email and i[1] is password
         if i[0] == email and i[1] == password:
             if i[2]==1:                
                 return True
@@ -30,7 +32,7 @@ def check_login(email, password):
     return False
 
 
-
+# Do signin user
 def signin(info):
     check_user = check_login(info['email'], info['password'])
     if check_user == True:
@@ -42,22 +44,28 @@ def signin(info):
     return 'False'
 
     
-    
+# Do signup user
 def signup(info):
     for i in info:
         if info[i] == '':
             return 'empty'
+        
+    # Check duplicate email
     if email_mng.is_exist_email(info['email']) == True :        
         return 'duplicate_email'
+    
+    # Check password and repassword
     if info['password'] != info['confirm_password']:
         return 'missmatch_pass'
+    
+    # Send confirm link
     link = send_confirm_email(info['email'],info['fullname'])
     info['link'] = link
     db.do_signup(info)
     return 'True'
 
-    
-    
+
+# Getback user_info
 def get_user_info(data_request):
     info = []
     user_info = request.data.decode('utf-8')

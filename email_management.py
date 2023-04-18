@@ -5,7 +5,10 @@ import db_management as db
 def check_confirm_email():
     all_links = []
     link = request.args.get('link','')    
+    
+    # Get All confirm links 
     users_links = db.get_all_confirm_links()
+    
     for row in users_links:
         all_links.append(row[0])    
     for i in all_links:
@@ -17,6 +20,8 @@ def check_confirm_email():
 
 def is_exist_email(email):
     x = db.check_email_exist(email)
+    
+    # False If not already confirmed
     if x == None:
         return False
     else:

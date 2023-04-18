@@ -10,55 +10,68 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = secrets.token_hex()
 
-
+# Checks that the user's new album title is not the same as other albums
 @user_mng.user_required
 def duplicate_title(title):
-    email = session['email']
-    user_id = db.get_user_id(email)
+    
+    # Get user id and all user's album titles
+    user_id = db.get_user_id()
     titles = db.get_titles(user_id)
+    
+    # False if there is no album for user
     if titles == False:
         return False
-    for tit in titles:            
-        if title==tit[0]:                
+    
+    for tit in titles:
+        # True if title is duplicate                
+        if title==tit[0]:
             return True
     return False
 
 
+# Add new album to user
 @app.route('/add-album', methods=['GET','POST'])
 @user_mng.user_required
 def _add_album():
     data_request = ["title" , "info" , "photo"]
+    
+    # Get album info
     album_info = user_mng.get_user_info(data_request)
     title = album_info[0]
     caption = album_info[1]
     photo = album_info[2]
-    photo_src ='/static/images/' + album_info[2]
     
-    try:
-        user_email = session['email']        
-        user_id = db.get_user_id(user_email)
-    except:
-        redirect('/signin')
-    
+    # All fields must be fill
     if title == '' or caption == '' or photo == '':
         return 'empty'
     
+    # User's new album title must be unique
     if duplicate_title(title):
         return 'duplicate title'
     
+    photo_src ='/static/images/' + album_info[2]
+    user_id = db.get_user_id()
+    
+    # Add new album to database
     db.add_album(user_id, photo_src, title,caption)
     return 'True'
 
 
+# Get user albums when login was successful
 @app.route('/albums', methods=['POST'])
 @user_mng.user_required
 def _albums():
-    titles=[' ']
+    titles=[]
     albumsinfo=[]
-    email = session['email']
-    user_id = db.get_user_id(email)
+    user_id = db.get_user_id()
+    
+    # get title, info, photo src
     albums_info = db.get_albums(user_id)
     for i in albums_info:
+        
+        # From each album, it takes only the first record stored in the database.        
+        # Because it is defined in the structure of the database that
+        # the first photo of each album is the album cover.
         if i[0] in titles:
             continue
         titles.append(i[0])        
@@ -66,43 +79,50 @@ def _albums():
     return albumsinfo
 
 
+# Add photo to user selected album
 @app.route('/add_photo_to_album', methods=['GET','POST'])
 @user_mng.user_required
 def _add_photo_to_album():
-    photos=[]
-    email = session['email']
-    user_id = db.get_user_id(email)
+    user_id = db.get_user_id()
+    
+    # Get album_title and photo_name(src)
     data_request = ["album_title" , "photo_name"]
     user_info = user_mng.get_user_info(data_request)
+    
     src = '/static/images/' + user_info[1]
     user_info = {"album_title":user_info[0] , "photo_name":user_info[1] ,"src":src}
-    album_photos = db.add_photo_to_album(user_id,user_info["album_title"],src)
+    album_photos = db.add_photo_to_album(user_id,user_info["album_title"],user_info["src"])
+    
+    # Add photos to the album
+    photos=[]
     for i in album_photos:
         photos.append(i[0])
+    
+    # photos[0] is the album cover photo
     return photos[1:]
 
-
+# Get user album photos
 @app.route('/albumphotos', methods=['GET','POST'])
 @user_mng.user_required
 def _albumphotos():
     photos=[]
-    email = session['email']
-    user_id = db.get_user_id(email)
+    user_id = db.get_user_id()
     data_request = ["album_title"]
-    title = user_mng.get_user_info(data_request)
-    album_photos = db.get_album_photos(user_id,title[0])
+    title = user_mng.get_user_info(data_request)[0]
+    
+    album_photos = db.get_album_photos(user_id,title)
     for i in album_photos:
         photos.append(i[0])
     return photos[1:]
     
-
+# When user want to signout the account
 @app.route('/sign-out', methods=['GET'])
 def _signout():
     session['logged_in'] = False
     session['email']= False
     return 'True'
 
-
+# To accept the link confirmation request
 @app.route('/confirm', methods=['GET'])
 def _check_confirm():
     return email_mng.check_confirm_email()
@@ -121,8 +141,10 @@ def _signup():
 def _signin():
     try :
         info=["email","password"]
-        user_info = user_mng.get_user_info(info)
+        user_info = user_mng.get_user_info(info)        
         user_info = {"email":user_info[0] , "password":user_info[1]}
+        
+        # try to signin user
         return(user_mng.signin(user_info))
     except:
         return render_template('index.html')
