@@ -9,18 +9,17 @@
 
     <!-- Font Icon -->
     <link rel="stylesheet" href="/static/fonts/material-icon/css/material-design-iconic-font.min.css">    
-
-    <link rel="stylesheet" href="/static/css/style.album.css">
-    
-    <link rel="stylesheet" href="/static/css/bootstrap.gallery.min.css">
     <link rel="stylesheet" href="/static/css/ionicons.min.css"> 
-    <link rel="stylesheet" href="/static/css/style.gallery.css">
     
+    <!-- Style -->
+    <link rel="stylesheet" href="/static/css/style.album.css">    
+    <link rel="stylesheet" href="/static/css/bootstrap.gallery.min.css">
+    <link rel="stylesheet" href="/static/css/style.gallery.css">
     <link rel="stylesheet" href="/static/css/style.css"> 
 </head>
 
 <body>
-
+    
     <div id="preloder">
             <div class="loader"></div>
     </div>
@@ -31,11 +30,16 @@
             <div class="container">
                 <div class="signin-content">
                     <div class="signin-image">
+
+                        <!-- signin image -->
                         <figure><img src="/static/images/signin.png" alt="signin image"></figure>
+                        
                         <a href="#" v-on:click="change_panel('signup')" class="signup-image-link">Create an account </a>                        
                     </div>
 
                     <div class="signin-form">
+
+                        <!-- Login title -->
                         <h2 class="form-title">Login</h2>
                         <form href="#" class="register-form" id="login-form">
                             <div class="form-group">
@@ -51,6 +55,7 @@
                                 <input href="#" type="button" v-on:click="signin(this)" name="signin" id="signin" class="form-submit" value="Log in"/>
                             </div>
                             
+                            <!-- Alerts -->
                             <div v-if="error_login === 'False'" class="alert alert-danger" role="alert">
                                 Email or password is incorrect.
                             </div>
@@ -60,6 +65,7 @@
                             <div v-if="error_login === 'noactive'" class="alert alert-danger" role="alert">
                                 Activate link sent to your email, open the link to active your account.
                             </div>
+
                         </form>                        
                     </div>
                 </div>
@@ -72,6 +78,8 @@
             <div class="container logined">
                 <div class="signup-content">
                     <div class="signup-form">
+
+                        <!-- Signup title -->
                         <h2 class="form-title">Sign up</h2>
                         <form href="#" class="register-form" id="register-form">
                             <div class="form-group">
@@ -91,10 +99,10 @@
                                 <input v-model="confirm_password" type="password" name="re_pass" id="re_pass" placeholder="Repeat your password"/>
                             </div>                            
 
+                            <!-- Alerts -->
                             <div v-if="success_signup === 'True'" class="alert alert-primary" role="alert">
                                 Your account created, Please check your email to verify.
-                            </div>
-                            
+                            </div>                            
                             <div v-if="error_signup === 'empty'" class="alert alert-danger" role="alert">
                                 Please fill all labels.
                             </div>
@@ -112,6 +120,8 @@
 
                         </form>
                     </div>
+
+                    <!-- Signup image -->
                     <div class="signup-image">
                         <figure><img src="/static/images/signup.png" alt="sing up image"></figure>
                         <a href="#" v-on:click="change_panel('sign-in')" class="signup-image-link">Already have an account? </a>                        
@@ -151,12 +161,15 @@
                                 <input href="#" type="button" v-on:click="add_album(this)" name="signup" id="signup" class="form-submit" value="Add"/>
                                 <input href="#" type="button" v-on:click="change_panel('gallery')" name="signup" id="signup" class="form-submit cancel-button" value="Cancel"/>
                             </div>
+
+                            <!-- Alerts -->
                             <div v-if="error_newgallery === 'empty'" class="alert alert-danger" role="alert">
                                 Please fill all labels.
                             </div>
                             <div v-if="error_newgallery === 'duplicate title'" class="alert alert-danger" role="alert">
                                 This title is duplicate, Please choose another title.
                             </div>
+
                         </form>
                     </div>
                 </div>
@@ -204,16 +217,21 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-sm-4 col-md-3 order-2 order-sm-1">
+                            
+                            <!-- Social media -->
                             <div class="header__social">
                                 <a href="https://facebook.com/m_eghlima8"><i class="zmdi zmdi-facebook-box"></i></a>
                                 <a href="https://twitter.com/m_eghlima8"><i class="zmdi zmdi-twitter-box"></i></a>
                                 <a href="https://instagram.com/m_eghlima8"><i class="zmdi zmdi-instagram"></i></a>
                             </div>
+
                         </div>                        
                     </div>
                     
                     <nav class="main__menu">
-                        <ul class="nav__menu">                            
+                        <ul class="nav__menu">
+                            
+                            <!-- Buttons -->
                             <li><a href="#" v-on:click="change_panel('gallery')" >Gallery</a></li>                            
                             <li><a href="#" v-on:click="change_panel('add_photo')" >Add Photo</a></li>                            
                         </ul>
@@ -224,6 +242,7 @@
             <div style="padding-left:25px; padding-right:25px;">
                 <div class="row d-flex flex-wrap align-items-center" data-toggle="modal" data-target="#lightbox">
                     
+                    <!-- Album photos -->
                     <div v-for="photo in album_photos" class="col-12 col-md-6 col-lg-3">                    
                         <img class="shadow p-3 mb-5 bg-white rounded" src="{% raw %} {{photo}} {% endraw %}" data-target="#indicators" data-slide-to="0" alt="" /> 
                     </div>                    
@@ -259,17 +278,18 @@
                         </div>                        
                     </div>
                     
+                    <!-- Social media -->
                     <nav class="main__menu">
                         <ul class="nav__menu">                            
                             <li><a href="#" class="menu--active" >Gallery</a></li>                            
                             <li><a href="#" v-on:click="signout(this)" >Logout</a></li>
-                            
                         </ul>
                     </nav>
+
                 </div>
             </header>
             
-            <!-- Gallery Start -->
+            <!-- Gallery -->
             <div class="container-xxl py-5">
                 <div class="row g-4">                    
                     
@@ -289,10 +309,10 @@
                 </div>
             </div>
             
-            <!-- Gallery end -->
 
 
-            <!-- New Gallery -->
+
+            <!-- New Gallery Button -->
             <a href="#" v-on:click="change_panel('new-album')" class="btn btn-primary back-to-top"><i class="zmdi zmdi-collection-plus zmdi-hc-3x"></i></a>
         </section>
 

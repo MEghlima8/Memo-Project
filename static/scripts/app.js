@@ -5,6 +5,8 @@ $(window).on('load', function() {
 	
 	// Preloder
 	$(".loader").fadeOut();
+
+    // preloder delay
 	$("#preloder").delay(400).fadeOut("slow");
 
 });
@@ -12,31 +14,35 @@ $(window).on('load', function() {
 
 
 var app_data = {
+
+    // The panel that is displayed
     panel: 'sign-in',
+
+    // Alerts data
     error_login:'',
     error_newgallery:'',
     error_signup:'',
     success_signup:'',
 
-    // new album
+    // New album data
     album_title:'',
     album_info:'',
     photo_name:'',
 
-    // signin
+    // Signin data
     user_email:'',
     user_password :'',
 
-    // albums
+    // Albums
     albums:'',
     
-    // album photos
+    // Album photos data
     photo_header:'',
     title:'',
     album_photos:'',
     add_photo_name:'',
 
-    // signup
+    // Signup data
     fullname:'',
     password:'',
     confirm_password:'',
@@ -44,7 +50,7 @@ var app_data = {
 
 };
 
-
+// Change panel to target and disable all alerts
 app_methods.change_panel = function(target){
     app_data.panel = target;
     app_data.error_newgallery = '';
@@ -53,6 +59,8 @@ app_methods.change_panel = function(target){
     app_data.success_signup = '';
 }
 
+
+//  What to do after click on signout
 app_methods.signout = function(target){
 
     axios.get('/sign-out').then(response => {
@@ -71,18 +79,21 @@ app_methods.signout = function(target){
     })
 }
 
+
 app_methods.albumphotos = function(target){
     app_data.title=target[0];
     var data = {     
         'album_title':app_data.title,
     }
+
+    // Post request to get album photos
     axios.post('/albumphotos',data).then(response => {        
         app_data.album_photos= response.data;         
         app_data.panel='album_panel';
     })
 }
 
-
+// Add photo to the album
 app_methods.add_photo = function(target){
     var data = {     
         'album_title':app_data.title,
@@ -96,7 +107,7 @@ app_methods.add_photo = function(target){
 }
 
 
-
+// Get albums
 app_methods.getalbums = function(){
 
     app_data.panel='gallery';    
@@ -107,19 +118,20 @@ app_methods.getalbums = function(){
 
 
 
-
+// Create new album
 app_methods.add_album = function(target){
     var data = {
         'title':app_data.album_title,
         'info':app_data.album_info,
         'photo':app_data.photo_name,
     }
-    // app_data.panel=page;
 
     axios.post('/add-album', data).then(response => {
         if (response.data=='True')
         {
             $(alert('New album created successfully'))
+
+            // Change panel to gallery panel
             page='gallery';
             app_data.panel= 'gallery';
             app_data.album_title='';
@@ -128,8 +140,9 @@ app_methods.add_album = function(target){
             app_methods.getalbums();
         }   
         else {
+
+            // if create panel was not successful getback this error
             app_data.error_newgallery=response.data;            
-            // page='new-album';
             app_data.panel= 'new-album';
         }  
     })
@@ -137,7 +150,7 @@ app_methods.add_album = function(target){
 
 
 
-
+// Do signin to user
 app_methods.signin = function(target){
     var data = {
         'email':app_data.user_email,
@@ -146,35 +159,23 @@ app_methods.signin = function(target){
     app_data.panel=page;
 
     axios.post('/', data).then(response => {
+
         if (response.data=='user')
         {
+            //  Login was succesful
             page='gallery';
             app_data.panel= 'gallery';
             app_methods.getalbums();
         }
         else {
+            //  Login was not succesful
             app_data.error_login=response.data;
             app_data.panel= 'sign-in';
         } 
-        // else if (response.data=='empty') {
-        //     $(alert('fill all labels'))            
-        //     page='sign-in';
-        //     app_data.panel= 'sign-in';
-        // }   
-        // else if(response.data=='False'){
-        //     $(alert('Email or password is incorrect'))
-        //     page='sign-in';
-        //     app_data.panel= 'sign-in';
-        // }
-        // else if (response.data=='noactive'){
-        //     $(alert('Activate link sent to your email. open the link to active your account'))
-        //     page='sign-in';
-        //     app_data.panel= 'sign-in';
-        // }
     })
 }
 
-
+// Do signup to user
 app_methods.signup = function(target){
     app_data.panel= 'signup';
     var data = {
@@ -185,15 +186,17 @@ app_methods.signup = function(target){
     }
 
     axios.post('/signup', data).then(response => {
-        
+
         if (response.data=='True')
         {   
+            // Signup was successful
             app_data.error_signup = '';         
             app_data.success_signup = response.data;
             app_data.panel= 'signup';
             page='signup';
         }   
         else {
+            // Signup was not successful
             app_data.success_signup = '';         
             app_data.error_signup = response.data;
             app_data.panel= 'signup';
