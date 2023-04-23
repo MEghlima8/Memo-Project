@@ -1,9 +1,9 @@
 import json
 import secrets
-from flask import Flask, request, redirect, render_template, session
-import email_management as email_mng
+from flask import Flask, request, redirect, render_template, session, make_response
+import email_controller as email_mng
 import user_management as user_mng
-import db_management as db
+import db_controller as db
 
 
 app = Flask(__name__)
@@ -15,8 +15,13 @@ app.secret_key = secrets.token_hex()
 def duplicate_title(title):
     
     # Get user id and all user's album titles
-    user_id = db.get_user_id()
-    titles = db.get_titles(user_id)
+    user_hash = request.cookies.get('user_hash')
+    
+    query = "select id from users_info where user_hash = ?"
+    user_id = db.execute(query, (user_hash,)).fetchone()[0]
+    
+    query = "select title from users_photo where user_id = ?"
+    titles = db.execute(query, (user_id,)).fetchall()
     
     # False if there is no album for user
     if titles == False:
@@ -50,23 +55,30 @@ def _add_album():
         return 'duplicate title'
     
     photo_src ='/static/images/' + album_info[2]
-    user_id = db.get_user_id()
+    user_hash = request.cookies.get('user_hash')
+    query = "select id from users_info where user_hash = ?"
+    user_id = db.execute(query, (user_hash,)).fetchone()[0]
     
     # Add new album to database
-    db.add_album(user_id, photo_src, title,caption)
+    query = 'insert into users_photo (user_id,src,title,info) values(? , ? , ? , ?)'
+    db.execute(query ,(user_id, photo_src, title,caption,))
     return 'True'
 
 
 # Get user albums when login was successful
-@app.route('/albums', methods=['POST'])
+@app.route('/albums', methods=['GET','POST'])
 @user_mng.user_required
 def _albums():
     titles=[]
     albumsinfo=[]
-    user_id = db.get_user_id()
+    user_hash = request.cookies.get('user_hash')
+    
+    query = "select id from users_info where user_hash = ?"
+    user_id = db.execute(query, (user_hash,)).fetchone()[0]
     
     # get title, info, photo src
-    albums_info = db.get_albums(user_id)
+    query = "select title,info,src from users_photo where user_id = ?"
+    albums_info = db.execute(query,(user_id,)).fetchall()
     for i in albums_info:
         
         # From each album, it takes only the first record stored in the database.        
@@ -83,7 +95,9 @@ def _albums():
 @app.route('/add_photo_to_album', methods=['GET','POST'])
 @user_mng.user_required
 def _add_photo_to_album():
-    user_id = db.get_user_id()
+    user_hash = request.cookies.get('user_hash')
+    query = "select id from users_info where user_hash = ?"
+    user_id = db.execute(query, (user_hash,)).fetchone()[0]
     
     # Get album_title and photo_name(src)
     data_request = ["album_title" , "photo_name"]
@@ -91,7 +105,9 @@ def _add_photo_to_album():
     
     src = '/static/images/' + user_info[1]
     user_info = {"album_title":user_info[0] , "photo_name":user_info[1] ,"src":src}
-    album_photos = db.add_photo_to_album(user_id,user_info["album_title"],user_info["src"])
+    
+    query = "select title,info,src fr   om users_photo where user_id = ?"
+    album_photos = db.execute(query , (user_id,user_info["album_title"],user_info["src"],)).fetchall()
     
     # Add photos to the album
     photos=[]
@@ -106,11 +122,16 @@ def _add_photo_to_album():
 @user_mng.user_required
 def _albumphotos():
     photos=[]
-    user_id = db.get_user_id()
+    user_hash = request.cookies.get('user_hash')
+    
+    query = "select id from users_info where user_hash = ?"
+    user_id = db.execute(query, (user_hash,)).fetchone()[0]
+    
     data_request = ["album_title"]
     title = user_mng.get_user_info(data_request)[0]
     
-    album_photos = db.get_album_photos(user_id,title)
+    query = "select src from users_photo where user_id = ? and title = ?"
+    album_photos = db.execute(query,(user_id,title,)).fetchall()
     for i in album_photos:
         photos.append(i[0])
     return photos[1:]
@@ -120,7 +141,9 @@ def _albumphotos():
 def _signout():
     session['logged_in'] = False
     session['email']= False
-    return 'True'
+    resp = make_response('True')
+    resp.set_cookie('user_hash', '', max_age=0)
+    return resp
 
 # To accept the link confirmation request
 @app.route('/confirm', methods=['GET'])
@@ -137,18 +160,28 @@ def _signup():
 
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
-@app.route('/' ,methods=['GET' , 'POST'] )
+# @app.route('/' ,methods=['GET' , 'POST'] )
 def _signin():
-    try :
-        info=["email","password"]
-        user_info = user_mng.get_user_info(info)        
-        user_info = {"email":user_info[0] , "password":user_info[1]}
+    user_hash = request.cookies.get('user_hash')
+    if user_hash is None:
+        try:
+            info=["email","password"]
+            user_info = user_mng.get_user_info(info)
+            user_info = {"email":user_info[0] , "password":user_info[1]}
+            return(user_mng.signin(user_info))
+        except:
+            return render_template('index.html')
+    query = "select email from users_info where user_hash = ?"
+    email = db.execute(query ,(user_hash,)).fetchone()[0]
+    session['logged_in'] = True
+    session['email'] = email
+    return 'user1'
         
-        # try to signin user
-        return(user_mng.signin(user_info))
-    except:
-        return render_template('index.html')
         
+@app.route('/' ,methods=['GET' , 'POST'] )
+def index():
+    return render_template('index.html')
+
         
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5000" , debug=True)

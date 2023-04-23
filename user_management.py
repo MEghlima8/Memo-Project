@@ -1,11 +1,12 @@
-from flask import session , abort , request
+from flask import session , abort , request,make_response
 from send_email import send_confirm_email
-import db_management as db
-import email_management as email_mng
+import db_controller as db
+import email_controller as email_mng
 from functools import wraps
+import secrets
 import json
 
-# This will check user is logined or not.if not getback error 403
+# This will check user is logged in or not.if not getback error 403
 def user_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -19,7 +20,10 @@ def user_required(func):
 # True if user password is True. noactive if user did signup but did not active
 def check_login(email, password):
     all_users = []
-    users_info = db.get_users()
+    
+    query = "select email from users_info where user_hash = ?"
+    users_info = db.execute("select email,password,active from users_info" ,)
+
     for row in users_info:
         all_users.append(row)
     for i in all_users:
@@ -38,7 +42,12 @@ def signin(info):
     if check_user == True:
         session['logged_in'] = True
         session['email'] = info['email']
-        return 'user'
+        user_hash = secrets.token_urlsafe(32)
+        resp = make_response('user')
+        resp.set_cookie('user_hash', user_hash,max_age=60 * 60 * 24 * 90)
+        query = "UPDATE users_info SET user_hash = '{user_hash}' WHERE email = '{email}';".format(user_hash=user_hash , email=info['email'])
+        db.execute(query)
+        return resp
     elif check_user == 'noactive':
         return 'noactive'
     return 'False'
@@ -61,7 +70,9 @@ def signup(info):
     # Send confirm link
     link = send_confirm_email(info['email'],info['fullname'])
     info['link'] = link
-    db.do_signup(info)
+    
+    query = 'insert into users_info (fullname,email,password,active,link) values(? , ? , ? , 0 , ?)'
+    db.execute(query , (info['fullname'], info['email'], info['password'], info['link'],))
     return 'True'
 
 

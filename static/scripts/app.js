@@ -12,7 +12,6 @@ $(window).on('load', function() {
 });
 
 
-
 var app_data = {
 
     // The panel that is displayed
@@ -49,6 +48,8 @@ var app_data = {
     email:'',
 
 };
+
+
 
 // Change panel to target and disable all alerts
 app_methods.change_panel = function(target){
@@ -151,22 +152,25 @@ app_methods.add_album = function(target){
 
 
 // Do signin to user
-app_methods.signin = function(target){
+app_methods.signin = function(){
     var data = {
         'email':app_data.user_email,
         'password':app_data.user_password,
     }
     app_data.panel=page;
 
-    axios.post('/', data).then(response => {
+    axios.post('/signin', data).then(response => {
 
-        if (response.data=='user')
-        {
+        if (response.data=='user') {
             //  Login was succesful
             page='gallery';
             app_data.panel= 'gallery';
             app_methods.getalbums();
         }
+        else if (response.data=='logged in') {
+            app_data.panel= 'gallery';
+            app_methods.getalbums();
+        } 
         else {
             //  Login was not succesful
             app_data.error_login=response.data;
@@ -202,15 +206,54 @@ app_methods.signup = function(target){
             app_data.panel= 'signup';
             page='signup';
         }           
-    })
-
-    
+    })    
 }
 
+
+// app_methods.first_request = function(){
+
+//     axios.post('/').then(response => {
+
+//         if (response.data=='True')
+//         {   
+//             // Signup was successful
+//             app_data.error_signup = '';         
+//             app_data.success_signup = response.data;
+//             app_data.panel= 'signup';
+//             page='signup';
+//         }   
+//         else {
+//             // Signup was not successful
+//             app_data.success_signup = '';         
+//             app_data.error_signup = response.data;
+//             app_data.panel= 'signup';
+//             page='signup';
+//         }           
+//     })    
+
+// }
 
 
 var app = new Vue({
     el: '#app',
     data: app_data,
     methods: app_methods,
-});
+
+    created: function(){
+        axios.get('/signin').then(response => {
+            if (response.data=='user1')
+            {
+                app_methods.getalbums();
+                page='gallery';
+                app_data.panel= 'gallery';
+                app_data.user_email= '';
+                app_data.user_password= '';
+            }  
+            app_data.error_newgallery = '';
+            app_data.error_login = '';
+            app_data.error_signup = '';
+            app_data.success_signup = '';
+        })
+
+    }}
+);

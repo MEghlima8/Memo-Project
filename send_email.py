@@ -15,23 +15,24 @@ def send_confirm_email(email, username):
     password = 'wgzjagoknsnswjtb'
 
     # Verify link key
-    link_key = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(50))
+    link_key = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     
     # The link to which the confirmation request will be emailed
     link = "http://localhost:5000/confirm?link=%s" % link_key
     
     # The message that is sent to the user's email
-    TEXT = '''Hello {username} , Click on the link below to confirm your email in MemorizeMemories.com, otherwise ignore this message.
+    text = '''Hello {username} , Click on the link below to confirm your email in MemorizeMemories.com, otherwise ignore this message.
     {link}
     '''.format(username=username, link=link)
     
     # Email subject
-    SUBJECT = 'Confirmation Email'
+    subject = 'Confirmation Email'
     
     # Email message
-    message = 'Subject: {}\n\n{}'.format(SUBJECT, TEXT)
+    message = 'Subject: {}\n\n{}'.format(subject, text)
 
 
+    # reference : https://www.mongard.ir/one_part/170/sending-email-python/
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
         server.login(sender_email, password) 
