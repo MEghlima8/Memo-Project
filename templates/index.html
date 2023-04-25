@@ -59,11 +59,26 @@
                             <div v-if="error_login === 'False'" class="alert alert-danger" role="alert">
                                 Email or password is incorrect.
                             </div>
-                            <div v-if="error_login === 'empty'" class="alert alert-danger" role="alert">
-                                Fill all labels.
-                            </div>
                             <div v-if="error_login === 'noactive'" class="alert alert-danger" role="alert">
                                 Activate link sent to your email, open the link to active your account.
+                            </div>
+                            <div v-if="error_login === 'email_length'" class="alert alert-danger" role="alert">
+                                Email length is too long. Please try again
+                            </div>
+                            <div v-if="error_login === 'password_length'" class="alert alert-danger" role="alert">
+                                Password length must be between 8 and 30 characters
+                            </div>
+                            <div v-if="error_login === 'char_email'" class="alert alert-danger" role="alert">
+                                Invalid email address.
+                            </div>
+                            <div v-if="error_login === 'char_password'" class="alert alert-danger" role="alert">
+                                The password must have at least one special characters and upper and lower case letters and digits.
+                            </div>
+                            <div v-if="error_login === 'empty_password'" class="alert alert-danger" role="alert">
+                                Please fill password field.
+                            </div>
+                            <div v-if="error_login === 'empty_email'" class="alert alert-danger" role="alert">
+                                Please fill email field.
                             </div>
 
                         </form>                        
@@ -103,15 +118,46 @@
                             <div v-if="success_signup === 'True'" class="alert alert-primary" role="alert">
                                 Your account created, Please check your email to verify.
                             </div>                            
-                            <div v-if="error_signup === 'empty'" class="alert alert-danger" role="alert">
-                                Please fill all labels.
-                            </div>
-                            <div v-if="error_signup === 'missmatch_pass'" class="alert alert-danger" role="alert">
-                                Pass and re-pass are not match.
-                            </div>
                             <div v-if="error_signup === 'duplicate_email'" class="alert alert-danger" role="alert">
                                 This email is already registered.
                             </div>
+                            <div v-if="error_signup === 'noactive'" class="alert alert-danger" role="alert">
+                                This email has already been registered but has not been confirmed. Please refer to your email for confirmation.
+                            </div>
+
+                            <div v-if="error_signup === 'email_length'" class="alert alert-danger" role="alert">
+                                Email characters are too long.
+                            </div>
+                            <div v-if="error_signup === 'char_email'" class="alert alert-danger" role="alert">
+                                Invalid email address. Please enter a valid email address.
+                            </div>
+                            <div v-if="error_signup === 'empty_email'" class="alert alert-danger" role="alert">
+                                Please fill Email address.
+                            </div>
+
+                            <div v-if="error_signup === 'password_length'" class="alert alert-danger" role="alert">
+                                The password length must be between 8 and 30 characters.
+                            </div>
+                            <div v-if="error_signup === 'char_password'" class="alert alert-danger" role="alert">
+                                The password must have at least one special characters and upper and lower case letters and digits.
+                            </div>
+                            <div v-if="error_signup === 'empty_password'" class="alert alert-danger" role="alert">
+                                Please fill password field.
+                            </div>
+                            <div v-if="error_signup === 'no_match_passwords'" class="alert alert-danger" role="alert">
+                                Password and confirm password are not match.
+                            </div>
+
+                            <div v-if="error_signup === 'fullname_length'" class="alert alert-danger" role="alert">
+                                The fullname is too long.
+                            </div>
+                            <div v-if="error_signup === 'char_fullname'" class="alert alert-danger" role="alert">
+                                Invalid fullname . Please enter a valid first name and last name.
+                            </div>
+                            <div v-if="error_signup === 'empty_fullname'" class="alert alert-danger" role="alert">
+                                Please fill fullname field.
+                            </div>
+
                             
                             <div class="form-group form-button">
                                 <input href="#" type="button" v-on:click="signup(this)"  name="signup" id="signup" class="form-submit" value="Register"/>

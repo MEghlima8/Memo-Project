@@ -1,7 +1,6 @@
-import json
 import secrets
-from flask import Flask, request, redirect, render_template, session, make_response
-import email_controller as email_mng
+from flask import Flask, request, render_template, session, make_response
+import email_controller as email_ctrl
 import user_management as user_mng
 import db_controller as db
 
@@ -13,23 +12,23 @@ app.secret_key = secrets.token_hex()
 # Checks that the user's new album title is not the same as other albums
 @user_mng.user_required
 def duplicate_title(title):
+    s_user_hash = request.cookies.get('user_hash')
     
     # Get user id and all user's album titles
-    user_hash = request.cookies.get('user_hash')
+    s_query = "select id from users_info where user_hash = ?"
+    i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
-    query = "select id from users_info where user_hash = ?"
-    user_id = db.execute(query, (user_hash,)).fetchone()[0]
-    
-    query = "select title from users_photo where user_id = ?"
-    titles = db.execute(query, (user_id,)).fetchall()
+    # Get user albums title
+    s_query = "select title from users_photo where user_id = ?"
+    l_titles = db.execute(s_query, (i_user_id,)).fetchall()
     
     # False if there is no album for user
-    if titles == False:
+    if l_titles == False:
         return False
     
-    for tit in titles:
+    for s_tit in l_titles:
         # True if title is duplicate                
-        if title==tit[0]:
+        if title==s_tit[0]:
             return True
     return False
 
@@ -38,103 +37,107 @@ def duplicate_title(title):
 @app.route('/add-album', methods=['GET','POST'])
 @user_mng.user_required
 def _add_album():
-    data_request = ["title" , "info" , "photo"]
+    l_data_request = ["title" , "info" , "photo"]
     
     # Get album info
-    album_info = user_mng.get_user_info(data_request)
-    title = album_info[0]
-    caption = album_info[1]
-    photo = album_info[2]
+    l_album_info = user_mng.get_user_info(l_data_request)
+    s_title = l_album_info[0]
+    s_caption = l_album_info[1]
+    s_photo = l_album_info[2]
     
     # All fields must be fill
-    if title == '' or caption == '' or photo == '':
+    if s_title == '' or s_caption == '' or s_photo == '':
         return 'empty'
     
     # User's new album title must be unique
-    if duplicate_title(title):
+    if duplicate_title(s_title):
         return 'duplicate title'
     
-    photo_src ='/static/images/' + album_info[2]
-    user_hash = request.cookies.get('user_hash')
-    query = "select id from users_info where user_hash = ?"
-    user_id = db.execute(query, (user_hash,)).fetchone()[0]
+    s_photo_src ='/static/images/' + l_album_info[2]
+    s_user_hash = request.cookies.get('user_hash')
+    
+    s_query = "select id from users_info where user_hash = ?"
+    i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     # Add new album to database
-    query = 'insert into users_photo (user_id,src,title,info) values(? , ? , ? , ?)'
-    db.execute(query ,(user_id, photo_src, title,caption,))
+    s_query = 'insert into users_photo (user_id,src,title,info) values(? , ? , ? , ?)'
+    db.execute(s_query ,(i_user_id, s_photo_src, s_title,s_caption,))
     return 'True'
 
 
-# Get user albums when login was successful
+# Get user albums when signin was successful
 @app.route('/albums', methods=['GET','POST'])
 @user_mng.user_required
 def _albums():
-    titles=[]
-    albumsinfo=[]
-    user_hash = request.cookies.get('user_hash')
+    l_titles=[]
+    l_albumsinfo=[]
+    s_user_hash = request.cookies.get('user_hash')
     
-    query = "select id from users_info where user_hash = ?"
-    user_id = db.execute(query, (user_hash,)).fetchone()[0]
+    s_query = "select id from users_info where user_hash = ?"
+    i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     # get title, info, photo src
-    query = "select title,info,src from users_photo where user_id = ?"
-    albums_info = db.execute(query,(user_id,)).fetchall()
-    for i in albums_info:
+    s_query = "select title,info,src from users_photo where user_id = ?"
+    l_albums_info = db.execute(s_query,(i_user_id,)).fetchall()
+    for i in l_albums_info:
         
         # From each album, it takes only the first record stored in the database.        
         # Because it is defined in the structure of the database that
         # the first photo of each album is the album cover.
-        if i[0] in titles:
+        if i[0] in l_titles:
             continue
-        titles.append(i[0])        
-        albumsinfo.append(list(i))
-    return albumsinfo
+        l_titles.append(i[0])        
+        l_albumsinfo.append(list(i))
+    return l_albumsinfo
 
 
 # Add photo to user selected album
 @app.route('/add_photo_to_album', methods=['GET','POST'])
 @user_mng.user_required
 def _add_photo_to_album():
-    user_hash = request.cookies.get('user_hash')
-    query = "select id from users_info where user_hash = ?"
-    user_id = db.execute(query, (user_hash,)).fetchone()[0]
+    s_user_hash = request.cookies.get('user_hash')
+    s_query = "select id from users_info where user_hash = ?"
+    i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     # Get album_title and photo_name(src)
-    data_request = ["album_title" , "photo_name"]
-    user_info = user_mng.get_user_info(data_request)
+    l_data_request = ["album_title" , "photo_name"]
+    l_user_info = user_mng.get_user_info(l_data_request)
     
-    src = '/static/images/' + user_info[1]
-    user_info = {"album_title":user_info[0] , "photo_name":user_info[1] ,"src":src}
+    s_src = '/static/images/' + l_user_info[1]
+    l_user_info = {"album_title":l_user_info[0] , "photo_name":l_user_info[1] ,"src":s_src}
     
-    query = "select title,info,src fr   om users_photo where user_id = ?"
-    album_photos = db.execute(query , (user_id,user_info["album_title"],user_info["src"],)).fetchall()
+    s_query = "select title,info,src fr   om users_photo where user_id = ?"
+    l_album_photos = db.execute(s_query , (i_user_id,l_user_info["album_title"],l_user_info["src"],)).fetchall()
     
     # Add photos to the album
-    photos=[]
-    for i in album_photos:
-        photos.append(i[0])
+    l_photos=[]
+    for i in l_album_photos:
+        l_photos.append(i[0])
     
     # photos[0] is the album cover photo
-    return photos[1:]
+    return l_photos[1:]
+
+
 
 # Get user album photos
 @app.route('/albumphotos', methods=['GET','POST'])
 @user_mng.user_required
 def _albumphotos():
-    photos=[]
-    user_hash = request.cookies.get('user_hash')
+    l_photos=[]
+    s_user_hash = request.cookies.get('user_hash')
     
-    query = "select id from users_info where user_hash = ?"
-    user_id = db.execute(query, (user_hash,)).fetchone()[0]
+    s_query = "select id from users_info where user_hash = ?"
+    i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
-    data_request = ["album_title"]
-    title = user_mng.get_user_info(data_request)[0]
+    l_data_request = ["album_title"]
+    s_title = user_mng.get_user_info(l_data_request)[0]
     
-    query = "select src from users_photo where user_id = ? and title = ?"
-    album_photos = db.execute(query,(user_id,title,)).fetchall()
-    for i in album_photos:
-        photos.append(i[0])
-    return photos[1:]
+    s_query = "select src from users_photo where user_id = ? and title = ?"
+    l_album_photos = db.execute(s_query,(i_user_id,s_title,)).fetchall()
+    for i in l_album_photos:
+        l_photos.append(i[0])
+    return l_photos[1:]
+    
     
 # When user want to signout the account
 @app.route('/sign-out', methods=['GET'])
@@ -145,36 +148,39 @@ def _signout():
     resp.set_cookie('user_hash', '', max_age=0)
     return resp
 
+
 # To accept the link confirmation request
 @app.route('/confirm', methods=['GET'])
 def _check_confirm():
-    return email_mng.check_confirm_email()
+    return email_ctrl.check_confirm_email()
 	
 
 @app.route('/signup', methods=['GET','POST'])
 def _signup():
-    data_request = ["fullname" , "email" , "password" , "confirm_password"]
-    user_info = user_mng.get_user_info(data_request)
-    user_info = { "fullname":user_info[0] , "email":user_info[1] , "password":user_info[2] , "confirm_password":user_info[3]}
-    return user_mng.signup(user_info)
+    l_data_request = ["fullname" , "email" , "password" , "confirm_password"]
+    l_user_info = user_mng.get_user_info(l_data_request)
+    l_user_info = { "fullname":l_user_info[0] , "email":l_user_info[1] , "password":l_user_info[2] , "confirm_password":l_user_info[3]}
+    return user_mng.signup(l_user_info)
 
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
 # @app.route('/' ,methods=['GET' , 'POST'] )
 def _signin():
-    user_hash = request.cookies.get('user_hash')
-    if user_hash is None:
+    s_user_hash = request.cookies.get('user_hash')
+    if s_user_hash is None:
         try:
-            info=["email","password"]
-            user_info = user_mng.get_user_info(info)
-            user_info = {"email":user_info[0] , "password":user_info[1]}
-            return(user_mng.signin(user_info))
+            l_info=["email","password"]
+            l_user_info = user_mng.get_user_info(l_info)
+            l_user_info = {"email":l_user_info[0] , "password":l_user_info[1]}
+            return(user_mng.signin(l_user_info))
         except:
             return render_template('index.html')
-    query = "select email from users_info where user_hash = ?"
-    email = db.execute(query ,(user_hash,)).fetchone()[0]
+        
+    s_query = "select email from users_info where user_hash = ?"
+    s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]
+    
     session['logged_in'] = True
-    session['email'] = email
+    session['email'] = s_email
     return 'user1'
         
         

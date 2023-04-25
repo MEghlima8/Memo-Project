@@ -8,7 +8,6 @@ $(window).on('load', function() {
 
     // preloder delay
 	$("#preloder").delay(400).fadeOut("slow");
-
 });
 
 
@@ -167,10 +166,10 @@ app_methods.signin = function(){
             app_data.panel= 'gallery';
             app_methods.getalbums();
         }
-        else if (response.data=='logged in') {
-            app_data.panel= 'gallery';
-            app_methods.getalbums();
-        } 
+        // else if (response.data=='logged in') {
+        //     app_data.panel= 'gallery';
+        //     app_methods.getalbums();
+        // } 
         else {
             //  Login was not succesful
             app_data.error_login=response.data;
@@ -208,30 +207,6 @@ app_methods.signup = function(target){
         }           
     })    
 }
-
-
-// app_methods.first_request = function(){
-
-//     axios.post('/').then(response => {
-
-//         if (response.data=='True')
-//         {   
-//             // Signup was successful
-//             app_data.error_signup = '';         
-//             app_data.success_signup = response.data;
-//             app_data.panel= 'signup';
-//             page='signup';
-//         }   
-//         else {
-//             // Signup was not successful
-//             app_data.success_signup = '';         
-//             app_data.error_signup = response.data;
-//             app_data.panel= 'signup';
-//             page='signup';
-//         }           
-//     })    
-
-// }
 
 
 var app = new Vue({
