@@ -1,7 +1,7 @@
 import secrets
 from flask import Flask, request, render_template, session, make_response
 import email_controller as email_ctrl
-import user_management as user_mng
+import user_controller as user_mng
 import db_controller as db
 import logs
 import os
@@ -224,6 +224,7 @@ def _signin():
         
 @app.route('/' ,methods=['GET' , 'POST'] )
 def index():
+    print('request.headers():\n',request.headers)
     return render_template('index.html')
         
         

@@ -1,4 +1,4 @@
-from flask import session , abort , request,make_response
+from flask import session , abort , request ,make_response
 from email_controller import send_confirm_email
 import db_controller as db
 import email_controller as email_ctrl
@@ -50,6 +50,8 @@ def is_auth_for_signup(fullname,email, password,confirm_password):
     elif email_ctrl.is_exist_email(email) == 'noactive':
         return 'noactive'
         
+    # Validate signup info
+    
     valid_info = validation.signup(fullname, email, password, confirm_password)
     if (valid_info=='email_length') or (valid_info=='char_email') or (valid_info=='empty_email'):        
         return valid_info
