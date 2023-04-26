@@ -4,10 +4,21 @@ import email_controller as email_ctrl
 import user_management as user_mng
 import db_controller as db
 import logs
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+configs = {
+    'SECRET_KEY' : os.getenv('SECRET_KEY') ,
+    'HOST' : os.getenv('HOST') , 
+    'DEBUG' : os.getenv('DEBUG') , 
+    'PORT' : os.getenv('PORT') , 
+}
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-app.secret_key = secrets.token_hex()
+app.secret_key = configs['SECRET_KEY']
+
 
 # Checks that the user's new album title is not the same as other albums
 @user_mng.user_required
@@ -217,4 +228,4 @@ def index():
         
         
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='5000' , debug=True)
+    app.run(host=configs['HOST'], port=configs['PORT'] , debug=configs['DEBUG'])
