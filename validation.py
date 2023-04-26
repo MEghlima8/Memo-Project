@@ -23,7 +23,7 @@ def is_valid_fullname(fullname):
     if len(fullname) > 320:
         return 'fullname_length'  # Fullname length is not less than 320 chars
     
-    allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ. ")
+    allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ. ')
     if not set(fullname).issubset(allowed_chars):
         return 'char_fullname' # Fullname chars is not valid
     

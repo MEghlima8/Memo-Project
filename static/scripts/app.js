@@ -97,7 +97,8 @@ app_methods.albumphotos = function(target){
 app_methods.add_photo = function(target){
     var data = {     
         'album_title':app_data.title,
-        'photo_name':app_data.add_photo_name
+        'photo_name':app_data.add_photo_name,
+        
     }
     axios.post('/add_photo_to_album',data).then(response => {
         app_data.album_photos= response.data;         
@@ -230,5 +231,5 @@ var app = new Vue({
             app_data.success_signup = '';
         })
 
-    }}
-);
+    }
+});

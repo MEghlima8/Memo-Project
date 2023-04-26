@@ -6,6 +6,7 @@ from functools import wraps
 import secrets
 import json
 import validation
+import logs
 
 
 # This will check user is logged in or not.if not getback error 403
@@ -24,10 +25,10 @@ def is_auth_for_signin(email, password):
     l_all_users = []
     
     valid_info = validation.signin(email, password)
-    if (valid_info=='email_length') or (valid_info=='password_length') or (valid_info=="char_email") or (valid_info=="char_password") or (valid_info=='empty_email') or (valid_info=='empty_password') :
+    if (valid_info=='email_length') or (valid_info=='password_length') or (valid_info=='char_email') or (valid_info=='char_password') or (valid_info=='empty_email') or (valid_info=='empty_password') :
         return valid_info    
     # Getback users info
-    l_users_info = db.execute("select email,password,active from users_info" ,)
+    l_users_info = db.execute('select email,password,active from users_info' ,)
 
     for row in l_users_info:
         l_all_users.append(row)
@@ -53,7 +54,7 @@ def is_auth_for_signup(fullname,email, password,confirm_password):
     if (valid_info=='email_length') or (valid_info=='char_email') or (valid_info=='empty_email'):        
         return valid_info
     
-    if (valid_info=='password_length') or (valid_info=="char_password") or (valid_info=='empty_password') :        
+    if (valid_info=='password_length') or (valid_info=='char_password') or (valid_info=='empty_password') :        
         return valid_info
     
     if (valid_info=='fullname_length') or (valid_info=='char_fullname') or (valid_info=='empty_fullname') :        
@@ -89,20 +90,24 @@ def signin(info):
         session['logged_in'] = True
         session['email'] = info['email']
         
+        s_query = 'select id from users_info where email = ?'
+        i_user_id = db.execute(s_query, (info['email'],)).fetchone()[0]
+        logs.add_log(i_user_id,'logged in')
+        
         # Get random hash
         user_hash = secrets.token_urlsafe(32)
         resp = make_response('user')
         resp.set_cookie('user_hash', user_hash,max_age=60 * 60 * 24 * 90)
         
         # Set hash for user
-        s_query = "UPDATE users_info SET user_hash = ? WHERE email = ?"
+        s_query = 'UPDATE users_info SET user_hash = ? WHERE email = ?'
         db.execute(s_query , (user_hash, info['email'],) )
         
         return resp
     elif check_user_info == 'noactive':
         return 'noactive'
     
-    elif (check_user_info=='email_length') or (check_user_info=='password_length') or (check_user_info=="char_email") or (check_user_info=="char_password") or (check_user_info=='empty_password') or (check_user_info=='empty_email'):
+    elif (check_user_info=='email_length') or (check_user_info=='password_length') or (check_user_info=='char_email') or (check_user_info=='char_password') or (check_user_info=='empty_password') or (check_user_info=='empty_email'):
         return check_user_info
     
     return 'False'

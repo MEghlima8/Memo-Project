@@ -11,7 +11,7 @@ def check_confirm_email():
     s_link = request.args.get('link','')    
     
     # Get All confirm links 
-    query = "select link from users_info"
+    query = 'select link from users_info'
     users_links = db.execute(query,)
     
     for row in users_links:
@@ -19,7 +19,7 @@ def check_confirm_email():
     for i in l_all_links:
         if i == s_link: # The link in database and the input confirmation link are match
             
-            query = "UPDATE users_info SET active=?  where link=?"
+            query = 'UPDATE users_info SET active=?  where link=?'
             db.execute(query, (1,s_link,)).fetchone()
             return render_template('confirm_email.html')
 
@@ -56,7 +56,7 @@ def send_confirm_email(email, username):
     s_link_key = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     
     # The link to which the confirmation request will be emailed
-    s_link = "http://localhost:5000/confirm?link=%s" % s_link_key
+    s_link = 'http://localhost:5000/confirm?link=%s' % s_link_key
     
     # The message that is sent to the user's email
     s_text = '''Hello {username} , Click on the link below to confirm your email in MemorizeMemories.com, otherwise ignore this message.
