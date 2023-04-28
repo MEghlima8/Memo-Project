@@ -126,7 +126,6 @@ def _add_photo_to_album():
     s_query = 'select info from users_photo where user_id = ? and title = ?'
     s_album_info = db.execute(s_query , (i_user_id,l_user_info['album_title'],)).fetchall()[0][0]
     
-    # print(i_user_id, s_src, l_user_info[0], s_album_info)
     s_query = 'insert into users_photo (user_id,src,title,info) values(? , ? , ? , ?)'
     db.execute(s_query, (i_user_id, s_src, l_user_info['album_title'], s_album_info,))
     
@@ -176,6 +175,7 @@ def _signout():
     
     session['logged_in'] = False
     session['email']= False
+    session.clear()
     resp = make_response('True')
     resp.set_cookie('user_hash', '', max_age=0)
     return resp
@@ -224,7 +224,6 @@ def _signin():
         
 @app.route('/' ,methods=['GET' , 'POST'] )
 def index():
-    print('request.headers():\n',request.headers)
     return render_template('index.html')
         
         
