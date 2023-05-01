@@ -1,12 +1,10 @@
 import sqlite3
-import os
-from dotenv import load_dotenv
+from App import config
 
 def execute(query, args=()):
-    load_dotenv()
-    database = os.getenv('DATABASE')
+    s_database_name = config.configs['DATABASE']
     
-    conn = sqlite3.connect(database)
+    conn = sqlite3.connect(s_database_name)
     cur = conn.cursor()
     x = cur.execute(query, args)
     conn.commit()
