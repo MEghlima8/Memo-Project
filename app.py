@@ -82,18 +82,15 @@ def duplicate_title(title):
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     # Get user albums title
-    s_query = 'select title from users_photo where user_id = ?'
-    l_titles = db.execute(s_query, (i_user_id,)).fetchall()
+    s_query = 'select title from users_photo where user_id = ? and title = ?'
+    check_is_there = db.execute(s_query, (i_user_id,title,)).fetchone()
     
-    # False if there is no album for user
-    if l_titles == False:
+    # False if there is no album with this title
+    if check_is_there is None:
         return False
     
-    for s_tit in l_titles:
-        # True if title is duplicate                
-        if title==s_tit[0]:
-            return True
-    return False
+    
+    return True
 
 
 # Add new album to user
@@ -183,13 +180,10 @@ def _add_photo_to_album():
     s_query = 'select src from users_photo where user_id = ? and title = ?'
     l_album_photos = db.execute(s_query , (i_user_id, l_user_info['album_title'] ,)).fetchall()
     
-    # Add photos to the album
-    l_photos=[]
-    for i in l_album_photos:
-        l_photos.append(i[0])
+    l_album_photos = [i[0] for i in l_album_photos]
     
     # photos[0] is the album cover photo
-    return l_photos[1:]
+    return l_album_photos[1:]
 
 
 
@@ -210,8 +204,9 @@ def _albumphotos():
     
     s_query = 'select src from users_photo where user_id = ? and title = ?'
     l_album_photos = db.execute(s_query,(i_user_id,s_title,)).fetchall()
-    for i in l_album_photos:
-        l_photos.append(i[0])
+    
+    l_photos = [i[0] for i in l_album_photos]
+
     return l_photos[1:]
     
     
