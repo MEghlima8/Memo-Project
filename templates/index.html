@@ -115,9 +115,13 @@
                             </div>                            
 
                             <!-- Alerts -->
+
                             <div v-if="success_signup === 'True'" class="alert alert-primary" role="alert">
                                 Your account created, Please check your email to verify.
                             </div>                            
+                            <div v-if="error_signup === 'used_info_in_password'" class="alert alert-danger" role="alert">
+                                You can't use your email address in password.
+                            </div>
                             <div v-if="error_signup === 'duplicate_email'" class="alert alert-danger" role="alert">
                                 This email is already registered.
                             </div>

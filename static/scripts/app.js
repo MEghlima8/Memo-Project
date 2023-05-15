@@ -150,6 +150,53 @@ app_methods.add_album = function(target){
 }
 
 
+app_methods.validate_signin = function(){
+
+    var email = app_data.user_email;
+    var password = app_data.user_password;
+
+    if (email == "") {
+    return 'empty_email';
+    }
+    
+    if (password == "") {
+    return 'empty_password';
+    }
+
+    if (password.length < 8) {
+        return 'password_length';
+    }
+
+    // check if email is valid
+    var emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+        return 'char_email';
+    }
+
+    // Check if password contains at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        return 'char_password';
+    }
+
+    // Check if password contains at least one lowercase letter
+    if (!/[a-z]/.test(password)) {
+        return 'char_password';
+    }
+
+    // Check if password contains at least one number
+    if (!/\d/.test(password)) {
+        return 'char_password';
+    }
+
+    // Check if password contains at least one special character
+    if (!/[$&+,:;=?@#|'<>.^*()%!-]/.test(password)) {
+        return 'char_password';
+    }
+
+      return true;
+}
+
+
 
 // Do signin to user
 app_methods.signin = function(){
@@ -158,6 +205,16 @@ app_methods.signin = function(){
         'password':app_data.user_password,
     }
     app_data.panel=page;
+
+    var res = app_methods.validate_signin();
+    if (res != true){
+        app_data.error_login = res;
+        app_data.panel= 'sign-in';
+        return;
+    }
+    console.log('888888888888888888888888')
+
+
 
     axios.post('/signin', data).then(response => {
 
@@ -203,8 +260,8 @@ app_methods.signup = function(target){
             // Signup was not successful
             app_data.success_signup = '';         
             app_data.error_signup = response.data;
-            app_data.panel= 'signup';
-            page='signup';
+            app_data.panel = 'signup';
+            page ='signup';
         }           
     })    
 }

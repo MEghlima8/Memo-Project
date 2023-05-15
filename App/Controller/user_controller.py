@@ -52,7 +52,7 @@ class User:
         if (valid_info=='email_length') or (valid_info=='char_email') or (valid_info=='empty_email'):        
             return valid_info        
         
-        if (valid_info=='password_length') or (valid_info=='char_password') or (valid_info=='empty_password') :        
+        if (valid_info=='password_length') or (valid_info=='char_password') or (valid_info=='empty_password') or (valid_info=='used_info_in_password') :        
             return valid_info        
         
         if (valid_info=='fullname_length') or (valid_info=='char_fullname') or (valid_info=='empty_fullname') :        
@@ -121,9 +121,9 @@ class User:
         s_query = 'select email,password,active from users_info where email=? and password=?'
         l_user_info = db.execute(s_query ,(self.email,hash_password,)).fetchone()
 
-        # i[0] is email and i[1] is password        
+        # i[0] is email and i[1] is password    
         if l_user_info is not None:
-            if l_user_info[2] == 1:           
+            if l_user_info[2] == 1: 
                 return True  
             return 'noactive'
         return False

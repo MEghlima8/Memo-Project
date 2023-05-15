@@ -47,6 +47,10 @@ class Valid:
         pass_pattern3 = re.compile(r'\d+') # The password must have number(s)
         pass_pattern4 = re.compile(r'[!@#$%^&*()<>?/\|}{~:]') # The password must have special character(s)
         
+        split_email = self.email.split('@')[0]
+        if split_email in self.password :
+            return 'used_info_in_password'
+        
         if pass_pattern1.fullmatch(self.password) is None:
             return 'password_length'
         elif pass_pattern2.search(self.password) is None or pass_pattern3.search(self.password) is None or pass_pattern4.search(self.password) is None:
@@ -65,7 +69,7 @@ class Valid:
             return check_valid_email
         
         check_valid_password = self.is_valid_password()
-        if check_valid_password == 'password_length' or check_valid_password == 'char_password' or check_valid_password == 'empty_password':
+        if check_valid_password == 'password_length' or check_valid_password == 'char_password' or check_valid_password == 'empty_password' or check_valid_password == 'used_info_in_password' :
             return check_valid_password
         return True
 
@@ -82,7 +86,7 @@ class Valid:
             return check_valid_email
         
         check_valid_password = self.is_valid_password()
-        if check_valid_password == 'password_length' or check_valid_password == 'char_password' or check_valid_password == 'empty_password':
+        if check_valid_password == 'password_length' or check_valid_password == 'char_password' or check_valid_password == 'empty_password' or check_valid_password == 'used_info_in_password':
             return check_valid_password
         
         check_valid_confirm_password = self.is_valid_confirm_password()
