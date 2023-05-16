@@ -7,6 +7,7 @@ import json
 from App.Controller.validation import Valid
 from App.logs import Log
 import hashlib
+import uuid
 
 
 class User:
@@ -28,11 +29,13 @@ class User:
         email = Email()
         s_confirmation_link = email.send_confirmation_email(self.email, self.fullname)
         
+        id = uuid.uuid4().hex
+        
         # To save password in database as hash.
         password = hashlib.md5(self.password.encode('utf-8')).hexdigest()
         
-        query = 'insert or ignore into users_info (fullname,email,password,active,link) values(? , ? , ? , 0 , ?)'
-        db.execute(query , (self.fullname, self.email, password, s_confirmation_link,))
+        query = 'insert or ignore into users_info (id,fullname,email,password,active,link) values(? , ? , ? , ? , 0 , ?)'
+        db.execute(query , (id, self.fullname, self.email, password, s_confirmation_link,))
         return 'True'
     
     
