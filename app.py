@@ -1,17 +1,79 @@
-import pdb
-import secrets
 from App import config
-from flask import Flask, request, render_template, session, make_response
+from flask import Flask, request, render_template, make_response, abort
 from App.Controller.email_controller import Email
 from App.Controller.user_controller import User
 from App.Controller import db_controller as db
 from App.logs import Log
-import os
+from functools import wraps
+import redis
 
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = int(config.configs['SEND_FILE_MAX_AGE_DEFAULT'])
 app.secret_key = config.configs['SECRET_KEY']
+
+rd = redis.Redis(host=config.configs['REDIS_HOST'], port=config.configs['REDIS_PORT'],
+                 password=config.configs['REDIS_PASSWORD'], db=config.configs['REDIS_DB_NUMBER'])
+
+user_email = None
+
+# This will check user is logged in or not.if not getback error 403
+@staticmethod
+def user_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if rd.hget(user_email, 'logged_in').decode() == 'True':
+            return func(*args, **kwargs)
+        else:
+            abort(403)
+    return wrapper
+
+
+@app.route('/signin' ,methods=['GET' , 'POST'])
+def _signin():
+    s_user_hash = request.cookies.get('user_hash')         
+    try:
+        # Get email
+        s_query = 'select email from users_info where user_hash = ?'
+        s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]        
+            
+        # Get user id
+        s_query = 'select id from users_info where user_hash = ?'
+        i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]        
+        
+        Log(i_user_id, 'logged in automatically')    
+        rd.hset(s_email, 'id' , str(i_user_id))
+        rd.hset(s_email, 'logged_in' , 'True')
+        # session['logged_in'] = True
+        # session['email'] = s_email            
+        return 'user1'
+    
+    except:        
+        try:          
+            l_info=['email' , 'password' ]            
+            l_user_info = User.get_user_info(l_info) 
+            o_user = User(email=l_user_info[0] , password=l_user_info[1])            
+            o_user = o_user.signin()            
+            
+            if o_user != 'False' or o_user != 'noactive':
+                global user_email
+                user_email = l_user_info[0]                
+                s_query = 'select id from users_info where email = ?'
+                s_id = str(db.execute(s_query ,(user_email,)).fetchone()[0])
+                
+                rd.hset(user_email,'id',s_id)
+                rd.hset(user_email,'logged_in','True')                
+                        
+            return o_user
+        except:            
+            return render_template('index.html') 
+    
+    
+        
+@app.route('/' ,methods=['GET' , 'POST'] )
+def index():
+    return render_template('index.html')
+
 
 @app.route('/signup', methods=['GET','POST'])
 def _signup():
@@ -23,49 +85,22 @@ def _signup():
     return s_user
 
 
-@app.route('/signin' ,methods=['GET' , 'POST'])
-def _signin():
-    s_user_hash = request.cookies.get('user_hash')     
-    if s_user_hash is None:        
-        try:            
-            l_info=['email' , 'password' ]            
-            l_user_info = User.get_user_info(l_info) 
-            o_user = User(email=l_user_info[0] , password=l_user_info[1])            
-            o_user = o_user.signin()            
-            return o_user
-        except:            
-            return render_template('index.html')    
-    # Get email
-    s_query = 'select email from users_info where user_hash = ?'
-    s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]
-    
-    # Get user id
-    s_query = 'select id from users_info where user_hash = ?'
-    i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
-    
-    log = Log(i_user_id, 'logged in automatically')
-    
-    session['logged_in'] = True
-    session['email'] = s_email
-    return 'user1'
-        
-        
-@app.route('/' ,methods=['GET' , 'POST'] )
-def index():
-    return render_template('index.html')
-
+@app.route('/check_is_online' , methods=['GET'])
+def _check_is_online():
+    # if request.environ.get('HTTP_REFERER') is None
+    print('request.environ.get("HTTP_REFERER"):\n',request.environ.get('HTTP_REFERER'))
 
 # When user want to signout the account
 @app.route('/sign-out', methods=['GET'])
 def _signout():
     # Get user id
     s_query = 'select id from users_info where email = ?'
-    i_user_id = db.execute(s_query, (session['email'],)).fetchone()[0]
+    i_user_id = db.execute(s_query, (user_email,)).fetchone()[0]
     
-    log = Log(i_user_id, 'logged out')
-    session['logged_in'] = False
-    session['email']= False
-    session.clear()
+    Log(i_user_id, 'logged out')
+    
+    rd.delete(user_email)
+
     resp = make_response('True')
     resp.set_cookie('user_hash', '', max_age=0)
     return resp
@@ -73,7 +108,7 @@ def _signout():
 
 
 # Checks that the user's new album title is not the same as other albums
-@User.user_required
+@user_required
 def duplicate_title(title):
     s_user_hash = request.cookies.get('user_hash')
     
@@ -95,7 +130,7 @@ def duplicate_title(title):
 
 # Add new album to user
 @app.route('/add-album', methods=['GET','POST'])
-@User.user_required
+@user_required
 def _add_album():
     l_data_request = ['title' , 'info' , 'photo']
     
@@ -128,8 +163,8 @@ def _add_album():
 
 # Get user albums when signin was successful
 @app.route('/albums', methods=['GET','POST'])
-@User.user_required
-def _albums():
+@user_required
+def _albums():    
     l_titles=[]
     l_albumsinfo=[]
     s_user_hash = request.cookies.get('user_hash')
@@ -137,7 +172,7 @@ def _albums():
     s_query = 'select id from users_info where user_hash = ?'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
-    log = Log(i_user_id, 'get albums')
+    Log(i_user_id, 'get albums')
     
     # get title, info, photo src
     s_query = 'select title,info,src from users_photo where user_id = ?'
@@ -156,7 +191,7 @@ def _albums():
 
 # Add photo to user selected album
 @app.route('/add_photo_to_album', methods=['GET','POST'])
-@User.user_required
+@user_required
 def _add_photo_to_album():
     s_user_hash = request.cookies.get('user_hash')
     s_query = 'select id from users_info where user_hash = ?'
@@ -189,7 +224,7 @@ def _add_photo_to_album():
 
 # Get user album photos
 @app.route('/albumphotos', methods=['GET','POST'])
-@User.user_required
+@user_required
 def _albumphotos():
     l_photos=[]
     s_user_hash = request.cookies.get('user_hash')

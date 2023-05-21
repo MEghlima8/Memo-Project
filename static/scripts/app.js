@@ -118,7 +118,6 @@ app_methods.getalbums = function(){
 }
 
 
-
 // Create new album
 app_methods.add_album = function(target){
     var data = {
@@ -212,7 +211,7 @@ app_methods.signin = function(){
         app_data.panel= 'sign-in';
         return;
     }
-    console.log('888888888888888888888888')
+
 
 
 

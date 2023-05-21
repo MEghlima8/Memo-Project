@@ -1,7 +1,6 @@
-from flask import session , abort , request ,make_response
+from flask import request ,make_response
 from App.Controller.email_controller import Email
 from App.Controller import db_controller as db
-from functools import wraps
 import secrets
 import json
 from App.Controller.validation import Valid
@@ -66,27 +65,10 @@ class User:
 
         return True
 
-
-    # This will check user is logged in or not.if not getback error 403
-    @staticmethod
-    def user_required(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if session.get('logged_in') is True:
-                return func(*args, **kwargs)
-            else:
-                abort(403)
-        return wrapper
-    
-    
-
     # Do signin user
     def signin(self):                
         check_user_info = self.is_valid_signin()
-        if check_user_info == True :            
-            session['logged_in'] = True
-            session['email'] = self.email
-            
+        if check_user_info == True :
             s_query = 'select id from users_info where email = ?'
             i_user_id = db.execute(s_query, (self.email,)).fetchone()[0]
             
