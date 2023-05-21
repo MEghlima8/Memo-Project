@@ -213,15 +213,13 @@ app_methods.signin = function(){
     }
 
 
-
-
     axios.post('/signin', data).then(response => {
 
         if (response.data=='user') {
             //  Login was succesful
             page='gallery';
             app_data.panel= 'gallery';
-            app_methods.getalbums();
+            app_methods.getalbums();            
         }
         // else if (response.data=='logged in') {
         //     app_data.panel= 'gallery';
@@ -234,6 +232,7 @@ app_methods.signin = function(){
         } 
     })
 }
+
 
 // Do signup to user
 app_methods.signup = function(target){

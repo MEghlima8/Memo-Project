@@ -31,7 +31,7 @@ def user_required(func):
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
 def _signin():
-    s_user_hash = request.cookies.get('user_hash')         
+    s_user_hash = request.cookies.get('user_hash')
     try:
         # Get email
         s_query = 'select email from users_info where user_hash = ?'
@@ -84,11 +84,6 @@ def _signup():
     s_user = o_user.signup()
     return s_user
 
-
-@app.route('/check_is_online' , methods=['GET'])
-def _check_is_online():
-    # if request.environ.get('HTTP_REFERER') is None
-    print('request.environ.get("HTTP_REFERER"):\n',request.environ.get('HTTP_REFERER'))
 
 # When user want to signout the account
 @app.route('/sign-out', methods=['GET'])
