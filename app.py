@@ -31,24 +31,24 @@ def user_required(func):
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
 def _signin():
-    s_user_hash = request.cookies.get('user_hash')
+    s_user_hash = request.cookies.get('user_hash')    
     try:
         # Get email
         s_query = 'select email from users_info where user_hash = ?'
-        s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]        
-            
+        s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]                
         # Get user id
         s_query = 'select id from users_info where user_hash = ?'
-        i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]        
-        
+        i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]                
+
         Log(i_user_id, 'logged in automatically')    
         rd.hset(s_email, 'id' , str(i_user_id))
         rd.hset(s_email, 'logged_in' , 'True')
+        
         # session['logged_in'] = True
         # session['email'] = s_email            
         return 'user1'
     
-    except:        
+    except:                
         try:          
             l_info=['email' , 'password' ]            
             l_user_info = User.get_user_info(l_info) 
