@@ -196,6 +196,50 @@ app_methods.validate_signin = function(){
 }
 
 
+app_methods.validate_signup = function(){
+
+    var email = app_data.email;
+    var password = app_data.password;
+    var fullname =  app_data.fullname;
+    var confirm_password = app_data.confirm_password
+
+    if (email == "") {
+    return 'empty_email';
+    }
+    
+    // check if email is valid
+    var emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) { return 'char_email'; }
+
+
+    if (password == "") { return 'empty_password'; }
+
+    if (password.length < 8) { return 'password_length'; }
+
+    // Check if password contains at least one uppercase letter
+    if (!/[A-Z]/.test(password)) { return 'char_password'; }
+
+    // Check if password contains at least one lowercase letter
+    if (!/[a-z]/.test(password)) { return 'char_password'; }
+
+    // Check if password contains at least one number
+    if (!/\d/.test(password)) { return 'char_password'; }
+
+    // Check if password contains at least one special character
+    if (!/[$&+,:;=?@#|'<>.^*()%!-]/.test(password)) { return 'char_password'; }
+
+    if (password != confirm_password){ return 'no_match_password' }
+
+    const regex = /^[A-Za-z]+([\ A-Za-z]+)*([\.\ A-Za-z]+)*$/;
+    if (!regex.test(fullname)){ return 'char_fullname' }
+
+    if(fullname.length > 50) { return 'fullname_length' }
+
+    if (fullname == "") { return 'empty_fullname' }
+
+    return true;
+}
+
 
 // Do signin to user
 app_methods.signin = function(){
@@ -243,6 +287,14 @@ app_methods.signup = function(target){
         'password':app_data.password,
         'confirm_password':app_data.confirm_password
     }
+
+    var res = app_methods.validate_signup();
+    if (res != true){
+        app_data.error_signup = res;
+        app_data.panel= 'signup';
+        return;
+    }
+
 
     axios.post('/signup', data).then(response => {
 
