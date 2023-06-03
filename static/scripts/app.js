@@ -17,34 +17,38 @@ var app_data = {
     panel: 'sign-in',
 
     // Alerts data
-    error_login:'',
-    error_newgallery:'',
-    error_signup:'',
-    success_signup:'',
+    error_login : '',
+    error_newgallery : '',
+    error_signup : '',
+    success_signup : '',
 
     // New album data
-    album_title:'',
-    album_info:'',
-    photo_name:'',
+    AddNewAlbum : '',
+    album_title : '',
+    album_info : '',
+
 
     // Signin data
-    user_email:'',
-    user_password :'',
+    user_email : '',
+    user_password : '',
 
     // Albums
-    albums:'',
+    albums : '',
     
     // Album photos data
-    photo_header:'',
-    title:'',
-    album_photos:'',
-    add_photo_name:'',
+    photo_header : '',
+    title : '',
+    album_photos : '',
 
     // Signup data
-    fullname:'',
-    password:'',
-    confirm_password:'',
-    email:'',
+    fullname : '',
+    password : '',
+    confirm_password : '',
+    email : '',
+
+    // Add Photo To Album
+    AddPhotoToAlbum : '',
+    
 
 };
 
@@ -95,15 +99,14 @@ app_methods.albumphotos = function(target){
 
 // Add photo to the album
 app_methods.add_photo = function(target){
-    var data = {     
-        'album_title':app_data.title,
-        'photo_name':app_data.add_photo_name,
-        
-    }
-    axios.post('/add_photo_to_album',data).then(response => {
+
+    const fd = new FormData();
+    fd.append('album_title', app_data.title)
+    fd.append('AddPhotoToAlbum',this.AddPhotoToAlbum)
+
+    axios.post('/add_photo_to_album',fd).then(response => {
         app_data.album_photos= response.data;         
         app_data.panel='album_panel';
-        app_data.add_photo_name = '';
     })
 }
 
@@ -118,15 +121,20 @@ app_methods.getalbums = function(){
 }
 
 
+app_methods.handleAddNewAlbum = function(event){
+    app_data.AddNewAlbum = event.target.files[0]
+}
+
+
 // Create new album
 app_methods.add_album = function(target){
-    var data = {
-        'title':app_data.album_title,
-        'info':app_data.album_info,
-        'photo':app_data.photo_name,
-    }
 
-    axios.post('/add-album', data).then(response => {
+    const fd = new FormData();
+    fd.append('AddNewAlbum', app_data.AddNewAlbum)
+    fd.append('title', app_data.album_title)
+    fd.append('info', app_data.album_info)
+
+    axios.post('/add-album', fd).then(response => {
         if (response.data=='True')
         {
             $(alert('New album created successfully'))
@@ -136,7 +144,6 @@ app_methods.add_album = function(target){
             app_data.panel= 'gallery';
             app_data.album_title='';
             app_data.album_info='';
-            app_data.photo_name='';            
             app_methods.getalbums();
         }   
         else {
@@ -315,6 +322,12 @@ app_methods.signup = function(target){
         }           
     })    
 }
+
+
+app_methods.handleAddPhotoToAlbum = function(event){
+    app_data.AddPhotoToAlbum = event.target.files[0]
+}
+
 
 
 var app = new Vue({
