@@ -8,7 +8,6 @@ from functools import wraps
 import redis
 import uuid
 import os
-import pdb
 
 
 app = Flask(__name__)
@@ -25,6 +24,9 @@ user_email = None
 def user_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        # if rd.hget(user_email, 'logged_in').decode() == 'True':
+        #     return func(*args, **kwargs)
+
         try:
             if rd.hget(user_email, 'logged_in').decode() == 'True':
                 return func(*args, **kwargs)
@@ -38,7 +40,7 @@ def user_required(func):
             if s_user_hash is not None and rd.hget(s_user_info[0], 'logged_in').decode() is not True:
                 rd.hset(s_user_info[0], 'id' , str(s_user_info[1]))
                 rd.hset(s_user_info[0], 'logged_in' , 'True')
-                return func(*args, **kwargs)
+                return func(*args, **kwargs)            
             abort(403)
             
     return wrapper
@@ -46,14 +48,17 @@ def user_required(func):
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
 def _signin():
-    s_user_hash = request.cookies.get('user_hash')
-    try:
+    
+    s_user_hash = request.cookies.get('user_hash')    
+    try:        
+
         # Get email
         s_query = 'select email from users_info where user_hash = ?'
         s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]                
         # Get user id
         s_query = 'select id from users_info where user_hash = ?'
         i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]                
+        
 
         Log(i_user_id, 'logged in automatically')    
         rd.hset(s_email, 'id' , str(i_user_id))
@@ -61,23 +66,32 @@ def _signin():
         
         # session['logged_in'] = True
         # session['email'] = s_email            
-        return 'user1'
+        
+
+        return 'user'
     
-    except:                
+    except:
+        
+
         try:          
             l_info=['email' , 'password' ]            
             l_user_info = User.get_user_info(l_info) 
             o_user = User(email=l_user_info[0] , password=l_user_info[1])            
             o_user = o_user.signin()            
             
-            if o_user != 'False' or o_user != 'noactive':
+
+            if o_user != 'False' and o_user != 'noactive':
                 global user_email
                 user_email = l_user_info[0]                
                 s_query = 'select id from users_info where email = ?'
                 s_id = str(db.execute(s_query ,(user_email,)).fetchone()[0])
+                                
+
+                rd.hset(user_email,'id',s_id)                
+                rd.hset(user_email,'logged_in','True')
                 
-                rd.hset(user_email,'id',s_id)
-                rd.hset(user_email,'logged_in','True')                
+
+                return o_user
                         
             return o_user
         except:            
@@ -86,7 +100,7 @@ def _signin():
     
         
 @app.route('/' ,methods=['GET' , 'POST'] )
-def index():
+def index():    
     return render_template('index.html')
 
 
@@ -221,21 +235,26 @@ def _add_photo_to_album():
 # Get user albums when signin was successful
 @app.route('/albums', methods=['GET','POST'])
 @user_required
-def _albums():    
+def _albums():
+        
+
     l_titles=[]
     l_albumsinfo=[]
     s_user_hash = request.cookies.get('user_hash')
     
+    
     s_query = 'select id from users_info where user_hash = ?'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
-    
+        
+
     Log(i_user_id, 'get albums')
     
     # get title, info, photo src
     s_query = 'select title,info,photo_name from users_photo where user_id = ?'
     l_albums_info = db.execute(s_query,(i_user_id,)).fetchall()
     l_albums_info = [list(i) for i in l_albums_info]
-    
+        
+
     for i in l_albums_info:
         i[2] = './static/images/' + i[2]
         
@@ -246,6 +265,8 @@ def _albums():
             continue
         l_titles.append(i[0])
         l_albumsinfo.append(list(i))
+    
+
     return l_albumsinfo
 
 

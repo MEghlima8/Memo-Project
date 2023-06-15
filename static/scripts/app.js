@@ -255,18 +255,18 @@ app_methods.signin = function(){
         'password':app_data.user_password,
     }
     app_data.panel=page;
-
+        
     var res = app_methods.validate_signin();
     if (res != true){
         app_data.error_login = res;
         app_data.panel= 'sign-in';
         return;
-    }
-
+    }    
 
     axios.post('/signin', data).then(response => {
+                
 
-        if (response.data=='user') {
+        if (response.data=='user') {            
             //  Login was succesful
             page='gallery';
             app_data.panel= 'gallery';
@@ -276,7 +276,7 @@ app_methods.signin = function(){
         //     app_data.panel= 'gallery';
         //     app_methods.getalbums();
         // } 
-        else {
+        else {            
             //  Login was not succesful
             app_data.error_login=response.data;
             app_data.panel= 'sign-in';
@@ -319,7 +319,7 @@ app_methods.signup = function(target){
             app_data.error_signup = response.data;
             app_data.panel = 'signup';
             page ='signup';
-        }           
+        } 
     })    
 }
 
@@ -337,7 +337,7 @@ var app = new Vue({
 
     created: function(){
         axios.get('/signin').then(response => {
-            if (response.data=='user1')
+            if (response.data=='user')
             {
                 app_methods.getalbums();
                 page='gallery';

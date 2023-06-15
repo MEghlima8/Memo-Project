@@ -72,7 +72,7 @@ class User:
             s_query = 'select id from users_info where email = ?'
             i_user_id = db.execute(s_query, (self.email,)).fetchone()[0]
             
-            log = Log(i_user_id, 'logged in')
+            Log(i_user_id, 'logged in')
             
             # Get random hash
             user_hash = secrets.token_urlsafe(32)
