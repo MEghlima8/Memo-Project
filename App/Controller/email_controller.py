@@ -2,7 +2,6 @@ from flask import request, render_template,abort
 from App.Controller import db_controller as db
 import smtplib
 import ssl
-from getpass import getpass
 import random
 import string
 from email.mime.multipart import MIMEMultipart
