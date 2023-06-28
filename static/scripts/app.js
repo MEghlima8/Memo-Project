@@ -21,6 +21,7 @@ var app_data = {
     error_newgallery : '',
     error_signup : '',
     success_signup : '',
+    error_add_photo : '',
 
     // New album data
     AddNewAlbum : '',
@@ -53,7 +54,6 @@ var app_data = {
 };
 
 
-
 // Change panel to target and disable all alerts
 app_methods.change_panel = function(target){
     app_data.panel = target;
@@ -61,6 +61,7 @@ app_methods.change_panel = function(target){
     app_data.error_login = '';
     app_data.error_signup = '';
     app_data.success_signup = '';
+    app_data.error_add_photo = '';
 }
 
 
@@ -105,8 +106,15 @@ app_methods.add_photo = function(target){
     fd.append('AddPhotoToAlbum',this.AddPhotoToAlbum)
 
     axios.post('/add_photo_to_album',fd).then(response => {
-        app_data.album_photos= response.data;         
-        app_data.panel='album_panel';
+        if (response.data=='fileSize')
+        {
+            app_data.error_add_photo = 'fileSize';
+            app_data.panel= 'add_photo';
+        }   
+        else {
+            app_data.album_photos= response.data;         
+            app_data.panel='album_panel';
+        }  
     })
 }
 
@@ -271,11 +279,7 @@ app_methods.signin = function(){
             page='gallery';
             app_data.panel= 'gallery';
             app_methods.getalbums();            
-        }
-        // else if (response.data=='logged in') {
-        //     app_data.panel= 'gallery';
-        //     app_methods.getalbums();
-        // } 
+        }        
         else {            
             //  Login was not succesful
             app_data.error_login=response.data;

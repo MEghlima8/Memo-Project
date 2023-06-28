@@ -13,6 +13,7 @@ import os
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = int(config.configs['SEND_FILE_MAX_AGE_DEFAULT'])
 app.secret_key = config.configs['SECRET_KEY']
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 rd = redis.Redis(host=config.configs['REDIS_HOST'], port=config.configs['REDIS_PORT'],
                  password=config.configs['REDIS_PASSWORD'], db=config.configs['REDIS_DB_NUMBER'])
@@ -162,8 +163,11 @@ def duplicate_title(title):
 @app.route('/add-album', methods=['GET','POST'])
 @user_required
 def _add_album():
-
-    s_photo = request.files['AddNewAlbum']
+    
+    try:
+        s_photo = request.files['AddNewAlbum']
+    except:
+        return 'fileSize'
     s_title = request.form['title']
     s_caption = request.form['info']
     
@@ -177,18 +181,18 @@ def _add_album():
     
     addAlbumPhotoUUID = uuid.uuid4().hex
     addAlbumPhotoSrc = addAlbumPhotoUUID + '.' + s_photo.mimetype.split('/')[1]
-    
     s_photo.save(os.path.join(config.configs["UPLOAD_USERS_PHOTOS"], addAlbumPhotoSrc))
     
     s_user_hash = request.cookies.get('user_hash')
-    
     s_query = 'select id from users_info where user_hash = ?'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     log = Log(i_user_id, 'add album')
+    
     # Add new album to database
     s_query = 'insert into users_photo (user_id,photo_name,title,info) values(? , ? , ? , ?)'
     db.execute(s_query ,(i_user_id, addAlbumPhotoSrc, s_title,s_caption,))
+    
     return 'True'
 
 
@@ -203,7 +207,11 @@ def _add_photo_to_album():
         
     Log(i_user_id, 'add photo to album')
     
-    AddPhotoToAlbum = request.files['AddPhotoToAlbum']
+    try:
+        AddPhotoToAlbum = request.files['AddPhotoToAlbum']
+    except:
+        return 'fileSize'
+    
     album_title = request.form['album_title']
     
     addPhotoToAlbumUUID = uuid.uuid4().hex
