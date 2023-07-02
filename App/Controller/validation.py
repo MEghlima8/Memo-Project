@@ -1,4 +1,5 @@
 import re 
+import Levenshtein
 
 class Valid:
     
@@ -35,8 +36,7 @@ class Valid:
         fullname_allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ. ')
         if not set(self.fullname).issubset(fullname_allowed_chars):
             return 'char_fullname' # Fullname chars is not valid
-        
-
+    
     # Check password is valid or not
     def is_valid_password(self):
         if not self.password :
@@ -48,9 +48,10 @@ class Valid:
         pass_pattern4 = re.compile(r'[!@#$%^&*()<>?/\|}{~:]') # The password must have special character(s)
         
         split_email = self.email.split('@')[0]
-        if split_email in self.password :
+        sim = self.calculate_similarity(split_email , self.password)
+        if sim >= 75 :
             return 'used_info_in_password'
-        
+            
         if pass_pattern1.fullmatch(self.password) is None:
             return 'password_length'
         elif pass_pattern2.search(self.password) is None or pass_pattern3.search(self.password) is None or pass_pattern4.search(self.password) is None:
@@ -94,3 +95,12 @@ class Valid:
             return 'no_match_passwords'
         
         return True
+    
+    
+    # Used Levenshtein distance to calculate similarity between two strings
+    def calculate_similarity(self,string1, string2):
+        distance = Levenshtein.distance(string1, string2)
+        max_length = max(len(string1), len(string2))
+        
+        similarity = 1 - (distance / max_length)
+        return similarity * 100

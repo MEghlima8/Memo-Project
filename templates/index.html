@@ -120,7 +120,7 @@
                                 Your account created, Please check your email to verify.
                             </div>                            
                             <div v-if="error_signup === 'used_info_in_password'" class="alert alert-danger" role="alert">
-                                You can't use your email address in password.
+                                You can't use your email or something similar in the password.
                             </div>
                             <div v-if="error_signup === 'duplicate_email'" class="alert alert-danger" role="alert">
                                 This email is already registered.
@@ -385,7 +385,6 @@
     <!-- JS -->
     <script type="text/javascript" src="/static/scripts/jquery.min.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
-    <!-- <script type="text/javascript" src="/static/scripts/main.album.js"></script> -->
     <script type="text/javascript" src="/static/scripts/vue.min.js"></script>
     <script type="text/javascript" src="/static/scripts/axios.min.js"></script>
     <script type="text/javascript" src="/static/scripts/app.js"></script>
