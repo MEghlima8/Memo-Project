@@ -33,7 +33,7 @@ class User:
         # To save password in database as hash.
         password = hashlib.md5(self.password.encode('utf-8')).hexdigest()
         
-        query = 'insert or ignore into users_info (id,fullname,email,password,active,link) values(? , ? , ? , ? , 0 , ?)'
+        query = 'insert into users_info (id,fullname,email,password,active,link) values(%s , %s , %s , %s , 0 , %s)'
         db.execute(query , (id, self.fullname, self.email, password, s_confirmation_link,))
         return 'True'
     
@@ -66,20 +66,20 @@ class User:
         return True
 
     # Do signin user
-    def signin(self):                
+    def signin(self):        
         check_user_info = self.is_valid_signin()
+        
         if check_user_info == True :
-            s_query = 'select id from users_info where email = ?'
-            i_user_id = db.execute(s_query, (self.email,)).fetchone()[0]
-            
-            Log(i_user_id, 'logged in')
-            
+            s_query = 'select id from users_info where email = %s'
+            i_user_id = db.execute(s_query, (self.email,)).fetchone()[0]            
+            Log(i_user_id, 'logged in')            
+                
             # Get random hash
             user_hash = secrets.token_urlsafe(32)
             resp = make_response('user')
-            resp.set_cookie('user_hash', user_hash,max_age=60 * 60 * 24 * 90)            
+            resp.set_cookie('user_hash', user_hash,max_age=60 * 60 * 24 * 90)                        
             # Set hash for user
-            s_query = 'UPDATE users_info SET user_hash = ? WHERE email = ?'
+            s_query = 'UPDATE users_info SET user_hash = %s WHERE email = %s'
             db.execute(s_query , (user_hash, self.email,) )                        
             
             return resp
@@ -103,7 +103,7 @@ class User:
         # Getback users info
         hash_password = hashlib.md5(self.password.encode('utf-8')).hexdigest()
         
-        s_query = 'select email,password,active from users_info where email=? and password=?'
+        s_query = 'select email,password,active from users_info where email=%s and password=%s'
         l_user_info = db.execute(s_query ,(self.email,hash_password,)).fetchone()
 
         # i[0] is email and i[1] is password    

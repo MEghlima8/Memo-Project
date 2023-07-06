@@ -65,12 +65,12 @@ class Email:
         s_link = request.args.get('link','')    
         
         # Get All confirm links 
-        query = 'select link from users_info where link=?'
+        query = 'select link from users_info where link=%s'
         is_exist = db.execute(query,(s_link,)).fetchone()
         
         if is_exist is not None :
-            query = 'UPDATE users_info SET active=?  where link=?'
-            db.execute(query, (1,s_link,)).fetchone()
+            query = 'UPDATE users_info SET active=%s  where link=%s'
+            db.execute(query, (1,s_link,))
             return render_template('confirm_email.html')
         abort (403)
     
@@ -78,7 +78,7 @@ class Email:
     @staticmethod
     def is_exist_email(email):        
         # Getback users info
-        query = 'select active from users_info where email=?'
+        query = 'select active from users_info where email=%s'
         l_users_info = db.execute(query ,(email,)).fetchone()        
         if l_users_info is None :            
             return False

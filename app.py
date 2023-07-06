@@ -25,8 +25,6 @@ user_email = None
 def user_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # if rd.hget(user_email, 'logged_in').decode() == 'True':
-        #     return func(*args, **kwargs)
 
         try:
             if rd.hget(user_email, 'logged_in').decode() == 'True':
@@ -35,7 +33,7 @@ def user_required(func):
                 
         except:
             s_user_hash = request.cookies.get('user_hash')
-            s_query = 'select email,id from users_info where user_hash = ?'
+            s_query = 'select email,id from users_info where user_hash = %s'
             s_user_info = db.execute(s_query ,(s_user_hash,)).fetchone()
             
             if s_user_hash is not None and rd.hget(s_user_info[0], 'logged_in').decode() is not True:
@@ -49,17 +47,16 @@ def user_required(func):
 
 @app.route('/signin' ,methods=['GET' , 'POST'])
 def _signin():
-    
+        
     s_user_hash = request.cookies.get('user_hash')    
     try:        
 
         # Get email
-        s_query = 'select email from users_info where user_hash = ?'
-        s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]                
+        s_query = 'select email from users_info where user_hash = %s'
+        s_email = db.execute(s_query ,(s_user_hash,)).fetchone()[0]         
         # Get user id
-        s_query = 'select id from users_info where user_hash = ?'
-        i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]                
-        
+        s_query = 'select id from users_info where user_hash = %s'
+        i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]    
 
         Log(i_user_id, 'logged in automatically')    
         rd.hset(s_email, 'id' , str(i_user_id))
@@ -72,25 +69,22 @@ def _signin():
         return 'user'
     
     except:
-        
-
+                
         try:          
             l_info=['email' , 'password' ]            
-            l_user_info = User.get_user_info(l_info) 
+            l_user_info = User.get_user_info(l_info)            
             o_user = User(email=l_user_info[0] , password=l_user_info[1])            
-            o_user = o_user.signin()            
+            o_user = o_user.signin()                        
             
 
-            if o_user != 'False' and o_user != 'noactive':
+            if o_user != 'False' and o_user != 'noactive':                
                 global user_email
                 user_email = l_user_info[0]                
-                s_query = 'select id from users_info where email = ?'
+                s_query = 'select id from users_info where email = %s'
                 s_id = str(db.execute(s_query ,(user_email,)).fetchone()[0])
-                                
-
+                                                
                 rd.hset(user_email,'id',s_id)                
-                rd.hset(user_email,'logged_in','True')
-                
+                rd.hset(user_email,'logged_in','True')                
 
                 return o_user
                         
@@ -101,8 +95,18 @@ def _signin():
     
         
 @app.route('/' ,methods=['GET' , 'POST'] )
-def index():    
+def index():  
     return render_template('index.html')
+
+@app.route('/test', methods=['GET', 'POST'])
+def test():
+    # user_email = 'eghlima.mohammad@gmail.com'
+    # s_query = "select * from users_info where email = %s"
+    s_query = 'select * from users_info'
+    # s_query = 'CREATE TABLE users_info (id CHAR(255) NOT NULL UNIQUE ,fullname CHAR(255) NOT NULL ,email CHAR(255) NOT NULL UNIQUE ,password CHAR(255) NOT NULL ,active INTEGER NOT NULL ,link CHAR(255) ,user_hash CHAR(255),PRIMARY KEY("id"))'
+    # s_query = "insert into users_info (id,fullname,email,password,active,link,user_hash) values ('1','Mohammad','eghlima.mohammad@gmail.com','49ea22d96c948eb5543980e27ad51f0b',1,'sfsfsfdfs','hashahshashhsashshahs')"
+    s_id = db.execute(s_query ,()).fetchall()    
+    return 'test'
 
 
 @app.route('/signup', methods=['GET','POST'])
@@ -121,11 +125,11 @@ def _signout():
     
     s_user_hash = request.cookies.get('user_hash')
     
-    s_query = 'select email from users_info where user_hash = ?'
+    s_query = 'select email from users_info where user_hash = %s'
     s_user_email = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     # Get user id
-    s_query = 'select id from users_info where user_hash = ?'
+    s_query = 'select id from users_info where user_hash = %s'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     Log(i_user_id, 'logged out')
@@ -144,11 +148,11 @@ def duplicate_title(title):
     s_user_hash = request.cookies.get('user_hash')
     
     # Get user id
-    s_query = 'select id from users_info where user_hash = ?'
+    s_query = 'select id from users_info where user_hash = %s'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     # Get user albums title
-    s_query = 'select title from users_photo where user_id = ? and title = ?'
+    s_query = 'select title from users_photo where user_id = %s and title = %s'
     check_is_there = db.execute(s_query, (i_user_id,title,)).fetchone()
     
     # False if there is no album with this title
@@ -184,13 +188,13 @@ def _add_album():
     s_photo.save(os.path.join(config.configs["UPLOAD_USERS_PHOTOS"], addAlbumPhotoSrc))
     
     s_user_hash = request.cookies.get('user_hash')
-    s_query = 'select id from users_info where user_hash = ?'
+    s_query = 'select id from users_info where user_hash = %s'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     log = Log(i_user_id, 'add album')
     
     # Add new album to database
-    s_query = 'insert into users_photo (user_id,photo_name,title,info) values(? , ? , ? , ?)'
+    s_query = 'insert into users_photo (user_id,photo_name,title,info) values(%s , %s , %s , %s)'
     db.execute(s_query ,(i_user_id, addAlbumPhotoSrc, s_title,s_caption,))
     
     return 'True'
@@ -202,7 +206,7 @@ def _add_album():
 def _add_photo_to_album():
     
     s_user_hash = request.cookies.get('user_hash')
-    s_query = 'select id from users_info where user_hash = ?'
+    s_query = 'select id from users_info where user_hash = %s'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
         
     Log(i_user_id, 'add photo to album')
@@ -222,13 +226,13 @@ def _add_photo_to_album():
     
     # Get album_title and photo_name(src)
     
-    s_query = 'select info from users_photo where user_id = ? and title = ?'
+    s_query = 'select info from users_photo where user_id = %s and title = %s'
     s_album_info = db.execute(s_query , (i_user_id,album_title,)).fetchall()[0][0]
     
-    s_query = 'insert into users_photo (user_id,photo_name,title,info) values(? , ? , ? , ?)'
+    s_query = 'insert into users_photo (user_id,photo_name,title,info) values(%s , %s , %s , %s)'
     db.execute(s_query, (i_user_id, addPhotoToAlbumSrc, album_title, s_album_info,))
     
-    s_query = 'select photo_name from users_photo where user_id = ? and title = ?'
+    s_query = 'select photo_name from users_photo where user_id = %s and title = %s'
     l_album_photos = db.execute(s_query , (i_user_id, album_title ,)).fetchall()
     
     l_album_photos = [i[0] for i in l_album_photos]    
@@ -251,14 +255,14 @@ def _albums():
     s_user_hash = request.cookies.get('user_hash')
     
     
-    s_query = 'select id from users_info where user_hash = ?'
+    s_query = 'select id from users_info where user_hash = %s'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
         
 
     Log(i_user_id, 'get albums')
     
     # get title, info, photo src
-    s_query = 'select title,info,photo_name from users_photo where user_id = ?'
+    s_query = 'select title,info,photo_name from users_photo where user_id = %s'
     l_albums_info = db.execute(s_query,(i_user_id,)).fetchall()
     l_albums_info = [list(i) for i in l_albums_info]
         
@@ -286,7 +290,7 @@ def _albumphotos():
     l_photos=[]
     s_user_hash = request.cookies.get('user_hash')
     
-    s_query = 'select id from users_info where user_hash = ?'
+    s_query = 'select id from users_info where user_hash = %s'
     i_user_id = db.execute(s_query, (s_user_hash,)).fetchone()[0]
     
     log = Log(i_user_id, 'get album photos')
@@ -294,7 +298,7 @@ def _albumphotos():
     l_data_request = ['album_title']
     s_title = User.get_user_info(l_data_request)[0]
     
-    s_query = 'select photo_name from users_photo where user_id = ? and title = ?'
+    s_query = 'select photo_name from users_photo where user_id = %s and title = %s'
     l_album_photos = db.execute(s_query,(i_user_id,s_title,)).fetchall()
     
     l_photos = [ './static/images/' + i[0] for i in l_album_photos]    
