@@ -62,9 +62,6 @@ def _signin():
         rd.hset(s_email, 'id' , str(i_user_id))
         rd.hset(s_email, 'logged_in' , 'True')
         
-        # session['logged_in'] = True
-        # session['email'] = s_email            
-        
 
         return 'user'
     
@@ -97,16 +94,6 @@ def _signin():
 @app.route('/' ,methods=['GET' , 'POST'] )
 def index():  
     return render_template('index.html')
-
-@app.route('/test', methods=['GET', 'POST'])
-def test():
-    # user_email = 'eghlima.mohammad@gmail.com'
-    # s_query = "select * from users_info where email = %s"
-    s_query = 'select * from users_info'
-    # s_query = 'CREATE TABLE users_info (id CHAR(255) NOT NULL UNIQUE ,fullname CHAR(255) NOT NULL ,email CHAR(255) NOT NULL UNIQUE ,password CHAR(255) NOT NULL ,active INTEGER NOT NULL ,link CHAR(255) ,user_hash CHAR(255),PRIMARY KEY("id"))'
-    # s_query = "insert into users_info (id,fullname,email,password,active,link,user_hash) values ('1','Mohammad','eghlima.mohammad@gmail.com','49ea22d96c948eb5543980e27ad51f0b',1,'sfsfsfdfs','hashahshashhsashshahs')"
-    s_id = db.execute(s_query ,()).fetchall()    
-    return 'test'
 
 
 @app.route('/signup', methods=['GET','POST'])
